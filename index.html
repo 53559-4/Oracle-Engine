@@ -1,0 +1,1802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Oracle Engine — Six Systems, One Birth</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* "Calm Nest" palette — sage, terracotta, dusty pink, dusty blue, cream, sandy tan */
+  --ink:#f3f0ec; --ink-2:#ede8e2; --panel:#eae5dd; --line:#c6bfb6;
+  --gold:#895d44; --gold-dim:#71664e; --purple:#606768; --cinnabar:#735b50;
+  --jade:#60675d; --paper:#332e29; --muted:#79674e;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--ink);color:var(--paper);font-family:'Manrope',sans-serif;line-height:1.65;
+  background-image:radial-gradient(ellipse 90% 55% at 50% -12%, #e6dfd0 0%, transparent 60%)}
+.wrap{max-width:880px;margin:0 auto;padding:30px 16px 90px}
+header{text-align:center;padding:30px 0 8px}
+h1{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:clamp(32px,6.5vw,50px);line-height:1.1}
+h1 em{font-style:italic;color:var(--gold)}
+.sub{color:var(--muted);font-size:14px;margin-top:12px;max-width:560px;margin-left:auto;margin-right:auto}
+
+/* form */
+.altar{margin-top:34px;background:linear-gradient(160deg,#f1ece4,#e3dccd);border:1px solid var(--line);
+  border-radius:14px;padding:26px 22px}
+.altar h2{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:22px;margin-bottom:4px}
+.altar .note{font-size:12px;color:var(--muted);margin-bottom:18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.field label{display:block;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--gold);font-weight:700;margin-bottom:6px}
+.field input,.field select{width:100%;background:var(--ink);border:1px solid var(--line);border-radius:8px;
+  color:var(--paper);font-family:'Manrope',sans-serif;font-size:15px;padding:11px 12px;transition:border-color .2s}
+.field input:focus,.field select:focus{outline:none;border-color:var(--gold)}
+.field .hint{font-size:10.5px;color:var(--muted);margin-top:4px}
+details.adv{margin-top:16px;border-top:1px dashed var(--line);padding-top:14px}
+details.adv summary{cursor:pointer;font-size:12px;color:var(--purple);letter-spacing:.12em;text-transform:uppercase;font-weight:700}
+details.adv .grid{margin-top:14px}
+.cast{margin-top:22px;width:100%;background:linear-gradient(135deg,var(--gold),#b78f3e);border:none;border-radius:10px;
+  color:#332e29;font-family:'Manrope',sans-serif;font-weight:700;font-size:15px;letter-spacing:.15em;text-transform:uppercase;
+  padding:16px;cursor:pointer;transition:transform .15s,box-shadow .2s}
+.cast:hover{transform:translateY(-1px);box-shadow:0 6px 26px rgba(137,93,68,.22)}
+.cast:focus-visible{outline:2px solid var(--paper);outline-offset:2px}
+.err{margin-top:12px;color:var(--cinnabar);font-size:13px;display:none}
+
+/* results */
+#results{display:none;margin-top:10px}
+.sys{margin-top:46px;background:var(--ink-2);border:1px solid var(--line);border-radius:14px;padding:24px 22px;position:relative;overflow:hidden}
+.sys-eyebrow{color:var(--gold);font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;font-weight:700}
+.sys h2{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:clamp(23px,4.4vw,30px);margin-top:4px}
+.sys .approx{display:inline-block;margin-left:8px;font-size:9px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--cinnabar);border:1px solid rgba(115,91,80,.4);border-radius:20px;padding:2px 8px;vertical-align:3px;font-weight:700}
+.res{margin-top:16px;border-left:2px solid var(--gold-dim);padding:2px 0 2px 14px}
+.res + .res{margin-top:18px}
+.res .k{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--purple);font-weight:700}
+.res .v{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:var(--gold);line-height:1.25;margin-top:2px}
+.res .v small{font-size:.62em;color:var(--muted);font-weight:400;font-style:italic}
+.res p{font-size:13.5px;color:#4b4135;margin-top:6px}
+.res p b{color:var(--gold)}
+.badge{display:inline-block;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;
+  border-radius:20px;padding:2px 9px;margin-left:8px;vertical-align:2px}
+.b-karmic{background:rgba(115,91,80,.15);color:var(--cinnabar)}
+.b-master{background:rgba(96,103,104,.18);color:var(--purple)}
+.foot-note{margin-top:60px;text-align:center;color:var(--muted);font-size:11.5px;letter-spacing:.05em;
+  border-top:1px solid var(--line);padding-top:22px;line-height:1.9}
+.foot-note .zh{font-family:'Cormorant Garamond',serif;font-style:italic;font-weight:600;color:var(--gold-dim);letter-spacing:.4em;text-indent:.4em;margin-bottom:6px}
+@media(max-width:560px){.sys{padding:20px 16px}.res .v{font-size:21px}}
+
+/* ---- nav ---- */
+.toc{position:sticky;top:0;z-index:50;background:rgba(243,240,236,.92);backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--line);margin:0 -16px 0;padding:10px 16px;overflow-x:auto;white-space:nowrap;
+  scrollbar-width:thin}
+.toc a{display:inline-block;color:var(--muted);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  text-decoration:none;font-weight:700;padding:6px 12px;border-radius:20px;margin-right:4px;transition:.15s}
+.toc a:hover,.toc a:focus-visible{color:var(--gold);background:rgba(137,93,68,.1)}
+.toc a.on{color:var(--ink);background:var(--gold)}
+
+/* ---- tooltip ---- */
+.tip{border-bottom:1px dotted var(--gold-dim);cursor:help;position:relative}
+.tipbox{position:fixed;z-index:999;max-width:280px;background:#f1ece4;border:1px solid var(--gold-dim);
+  border-radius:8px;padding:10px 13px;font-size:12.5px;line-height:1.5;color:var(--paper);
+  box-shadow:0 10px 30px rgba(120,100,80,.16);pointer-events:none;opacity:0;transform:translateY(4px);
+  transition:opacity .15s,transform .15s}
+.tipbox.show{opacity:1;transform:translateY(0)}
+.tipbox b{color:var(--gold)}
+.sys h2 .tip{border-bottom-color:var(--purple)}
+.res .k.tip{border-bottom-color:var(--purple)}
+
+/* ---- toc-jump highlight ---- */
+.sys.jumped{animation:flash 1.1s ease}
+@keyframes flash{0%{box-shadow:0 0 0 2px var(--gold)}100%{box-shadow:none}}
+
+@media(max-width:560px){.toc{margin:0 -16px 0;padding:8px 12px}.toc a{padding:5px 10px;font-size:10px}}
+
+/* ---- accordion (details/summary) ---- */
+.sys{padding:0}
+.sys summary{list-style:none;cursor:pointer;padding:24px 22px 18px;display:flex;flex-direction:column;
+  gap:2px;user-select:none;-webkit-tap-highlight-color:transparent}
+.sys summary::-webkit-details-marker{display:none}
+.sys summary:hover .sys-eyebrow{color:var(--paper)}
+.sys summary:focus-visible{outline:2px solid var(--gold);outline-offset:-2px;border-radius:8px}
+.sys h2{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.chev{margin-left:auto;font-size:14px;color:var(--gold-dim);transition:transform .25s;flex-shrink:0}
+.sys:not([open]) .chev{transform:rotate(-90deg)}
+.sys:not([open]) summary{padding-bottom:24px}
+.sys:not([open]){background:linear-gradient(160deg,#eee8de,#dfd7c6)}
+.sys-body{padding:0 22px 24px}
+.sys[open] summary{border-bottom:1px solid var(--line);margin-bottom:4px}
+
+/* ---- palace sub-accordion inside ZWDS ---- */
+.subacc{margin-top:14px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:rgba(198,191,182,.35)}
+.subacc summary{padding:12px 16px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);
+  font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:space-between}
+.subacc summary::-webkit-details-marker{display:none}
+.subacc .chev{font-size:12px;color:var(--gold-dim);transition:transform .25s}
+.subacc:not([open]) .chev{transform:rotate(-90deg)}
+.subacc-body{padding:4px 16px 16px}
+
+/* ---- form: step labels ---- */
+.step{display:flex;align-items:center;gap:10px;margin:0 0 4px}
+.step .num{width:22px;height:22px;border-radius:50%;background:var(--gold);color:var(--ink);
+  font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.step-label{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:700}
+.altar .step-divider{margin:22px 0 16px;border-top:1px dashed var(--line)}
+
+/* ---- nav controls ---- */
+.toc-row{display:flex;align-items:center;gap:8px}
+.toc-links{flex:1;overflow-x:auto;white-space:nowrap;scrollbar-width:thin;display:flex}
+.toc-tools{display:flex;gap:4px;flex-shrink:0;padding-left:6px;border-left:1px solid var(--line)}
+.toc-tools button{background:none;border:1px solid var(--line);color:var(--muted);border-radius:20px;
+  font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:6px 10px;cursor:pointer;
+  font-family:'Manrope',sans-serif;font-weight:700;transition:.15s;white-space:nowrap}
+.toc-tools button:hover{color:var(--gold);border-color:var(--gold-dim)}
+
+/* ---- back to top / recast ---- */
+.fab{position:fixed;right:18px;bottom:18px;z-index:60;background:var(--gold);color:var(--ink);border:none;
+  border-radius:50%;width:46px;height:46px;font-size:18px;cursor:pointer;box-shadow:0 6px 20px rgba(120,100,80,.16);
+  display:none;align-items:center;justify-content:center;transition:transform .15s}
+.fab:hover{transform:translateY(-2px)}
+.fab.show{display:flex}
+.recast{margin-top:34px;width:100%;background:none;border:1px solid var(--gold-dim);border-radius:10px;
+  color:var(--gold);font-family:'Manrope',sans-serif;font-weight:700;font-size:13px;letter-spacing:.12em;
+  text-transform:uppercase;padding:13px;cursor:pointer;transition:.15s}
+.recast:hover{background:rgba(137,93,68,.08);border-color:var(--gold)}
+#results-footer{display:flex;flex-wrap:wrap;gap:14px}
+#results-footer .recast{flex:1;min-width:220px;margin-top:34px}
+
+
+
+/* ---- life summary ---- */
+.summary-sys{background:linear-gradient(160deg,#f3efe6,#e6dfd0)}
+.summary-sys .sys-eyebrow{color:var(--purple)}
+#summary-out .arc{margin-top:6px}
+#summary-out .arc-head{display:flex;align-items:center;gap:10px;margin-top:20px}
+#summary-out .arc-head .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+#summary-out .arc-head h3{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:600;color:var(--gold)}
+#summary-out .arc p{font-size:14px;color:#4b4135;margin-top:8px;line-height:1.7}
+#summary-out .arc:first-child .arc-head{margin-top:4px}
+#summary-out .today{margin-top:24px;background:rgba(137,93,68,.08);border:1px solid var(--gold-dim);
+  border-radius:10px;padding:16px 18px}
+#summary-out .today .k{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:700}
+#summary-out .today .date{font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--paper);margin-top:2px}
+#summary-out .today p{font-size:13.5px;color:#4b4135;margin-top:8px;line-height:1.65}
+#summary-out .thread-line{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:17px;
+  color:var(--paper);border-left:2px solid var(--gold);padding-left:14px;margin-top:22px;line-height:1.5}
+
+
+/* ---- clickable cards ---- */
+.sys-card{display:block;width:100%;text-align:left;cursor:pointer;font-family:inherit;
+  transition:transform .15s,border-color .2s,background .2s}
+.sys-card:hover{transform:translateY(-2px);border-color:var(--gold-dim);background:#e6dfd0}
+.sys-card:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.card-more{display:block;margin-top:10px;font-size:11px;letter-spacing:.06em;color:var(--gold);font-weight:700;opacity:0;transition:opacity .2s}
+.sys-card:hover .card-more,.sys-card:focus-visible .card-more{opacity:1}
+@media(hover:none){.card-more{opacity:.75}}
+
+/* ---- explainer page ---- */
+#explainer{display:none;padding:10px 0 20px}
+.explain-back{background:none;border:1px solid var(--line);color:var(--muted);border-radius:20px;
+  font-size:12px;letter-spacing:.06em;font-weight:700;padding:9px 16px;cursor:pointer;
+  font-family:'Manrope',sans-serif;transition:.15s;margin-bottom:24px}
+.explain-back:hover{color:var(--gold);border-color:var(--gold-dim)}
+.explain-hero{border-bottom:1px solid var(--line);padding-bottom:22px;margin-bottom:8px}
+.explain-eyebrow{color:var(--gold);font-size:11px;letter-spacing:.28em;text-transform:uppercase;font-weight:700}
+.explain-hero h2{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:clamp(28px,6vw,42px);margin-top:6px;line-height:1.1}
+.explain-hero h2 em{font-style:italic;color:var(--gold)}
+.explain-origin{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:14px;font-size:12px;color:var(--muted)}
+.explain-origin b{color:var(--paper);font-weight:500}
+.explain-lead{font-family:'Cormorant Garamond',serif;font-size:clamp(17px,3.2vw,21px);font-style:italic;
+  color:var(--paper);line-height:1.5;margin:24px 0 8px}
+.explain-body p{font-size:14.5px;color:#4b4135;line-height:1.75;margin-top:14px}
+.explain-body p b{color:var(--gold)}
+.explain-count{display:inline-block;margin:26px 0 4px;font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--purple);font-weight:700;border:1px solid var(--line);border-radius:20px;padding:6px 14px}
+.explain-types{margin-top:16px;display:flex;flex-direction:column;gap:12px}
+.etype{background:var(--ink-2);border:1px solid var(--line);border-radius:10px;padding:15px 17px;
+  border-left:2px solid var(--gold-dim)}
+.etype h4{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:600;color:var(--gold)}
+.etype h4 .sub{font-family:'Manrope',sans-serif;font-size:11px;color:var(--muted);font-weight:500;letter-spacing:.08em;margin-left:8px;text-transform:uppercase}
+.etype p{font-size:13.5px;color:#4b4135;margin-top:6px;line-height:1.6}
+.explain-note{margin-top:24px;font-size:12.5px;color:var(--muted);font-style:italic;line-height:1.7;
+  border-left:2px solid var(--cinnabar);padding-left:14px}
+.explain-footer{margin-top:38px;padding-top:24px;border-top:1px solid var(--line);
+  display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between}
+.explain-footer .begin{margin:0}
+
+/* ---- landing page ---- */
+#landing{text-align:center;padding:20px 0 10px}
+.landing-lead{font-family:'Cormorant Garamond',serif;font-size:clamp(17px,3.2vw,22px);font-style:italic;
+  color:var(--paper);max-width:600px;margin:20px auto 0;line-height:1.5}
+.sys-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:32px auto 0;max-width:720px;text-align:left}
+.sys-card{background:var(--ink-2);border:1px solid var(--line);border-radius:10px;padding:15px 15px 16px;position:relative}
+.sys-card h3{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;color:var(--gold)}
+.sys-card p{font-size:11.5px;color:var(--muted);margin-top:5px;line-height:1.5}
+.landing-how{max-width:640px;margin:34px auto 0;text-align:left;background:linear-gradient(160deg,#f1ece4,#e3dccd);
+  border:1px solid var(--line);border-radius:12px;padding:22px 22px}
+.landing-how h3{font-family:'Cormorant Garamond',serif;font-size:19px;color:var(--paper);margin-bottom:12px}
+.landing-how ol{margin:0;padding-left:20px}
+.landing-how li{font-size:13px;color:#4b4135;margin-bottom:8px;padding-left:4px}
+.landing-how li b{color:var(--gold)}
+.begin{margin:32px auto 0;display:inline-flex;align-items:center;gap:10px;
+  background:linear-gradient(135deg,var(--gold),#b78f3e);border:none;border-radius:30px;
+  color:#332e29;font-family:'Manrope',sans-serif;font-weight:700;font-size:15px;letter-spacing:.14em;
+  text-transform:uppercase;padding:16px 34px;cursor:pointer;transition:transform .15s,box-shadow .2s}
+.begin:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(137,93,68,.26)}
+.disclaimer{font-size:11.5px;color:var(--muted);max-width:520px;margin:26px auto 0;line-height:1.7;font-style:italic}
+#app{display:none}
+
+/* ---- name sub-grid ---- */
+.name-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;grid-column:1/-1}
+@media(max-width:520px){.name-grid{grid-template-columns:1fr}}
+.field .req{color:var(--cinnabar);margin-left:3px}
+.opt-intro{font-size:12.5px;color:#4b4135;margin:2px 0 16px;line-height:1.6}
+.opt-intro b{color:var(--gold)}
+.citywrap{position:relative}
+.city-results{position:absolute;z-index:40;left:0;right:0;top:calc(100% + 4px);background:#ede8e2;
+  border:1px solid var(--gold-dim);border-radius:8px;max-height:240px;overflow-y:auto;display:none;box-shadow:0 12px 30px rgba(120,100,80,.18)}
+.city-results.show{display:block}
+.city-results button{display:block;width:100%;text-align:left;background:none;border:none;color:var(--paper);
+  font-family:'Manrope',sans-serif;font-size:13.5px;padding:10px 13px;cursor:pointer;border-bottom:1px solid var(--line)}
+.city-results button:last-child{border-bottom:none}
+.city-results button:hover,.city-results button.hi{background:rgba(137,93,68,.14)}
+.city-results .muted{color:var(--muted);font-size:11px}
+.city-chosen{font-size:11px;color:var(--jade);margin-top:5px;min-height:14px}
+
+@media(max-width:560px){
+  .sys summary{padding:18px 16px 14px}
+  .sys-body{padding:0 16px 20px}
+  .toc-tools button{padding:5px 8px;font-size:9px}
+}
+
+/* ---- print / save-as-PDF ---- */
+/* ---- remember my details ---- */
+.remember-field{margin-top:2px}
+.remember-label{display:flex;align-items:flex-start;gap:9px;cursor:pointer;font-size:13.5px;color:var(--paper);line-height:1.5}
+.remember-label input[type="checkbox"]{margin-top:3px;width:16px;height:16px;accent-color:var(--gold);flex-shrink:0;cursor:pointer}
+.remember-note{margin-top:8px;font-size:12.5px;color:var(--jade);background:rgba(96,103,93,.08);
+  border:1px solid rgba(96,103,93,.25);border-radius:8px;padding:9px 12px}
+.print-note{margin-top:8px;font-size:12.5px;color:var(--muted);background:rgba(137,93,68,.07);
+  border:1px solid var(--gold-dim);border-radius:8px;padding:9px 12px;line-height:1.55}
+.print-note b{color:var(--gold)}
+.remember-note button{background:none;border:none;color:var(--cinnabar);text-decoration:underline;
+  cursor:pointer;font-family:inherit;font-size:inherit;padding:0;margin-left:4px}
+
+.print-header{display:none}
+@media print{
+  /* retint the whole report for paper — most colors flow from these custom properties */
+  :root{
+    --ink:#ffffff; --ink-2:#f7f4ea; --panel:#ffffff; --line:#cfc9b8;
+    --gold:#895d44; --gold-dim:#71664e; --purple:#606768; --cinnabar:#735b50;
+    --jade:#60675d; --paper:#1a1a1a; --muted:#5a5a5a;
+  }
+  *{box-shadow:none !important;text-shadow:none !important;backdrop-filter:none !important;animation:none !important;transition:none !important}
+  body{background:#fff !important;background-image:none !important;color:#1a1a1a}
+  .wrap{max-width:100%;padding:0 6px}
+
+  /* chrome that means nothing on paper */
+  .toc,.fab,.tipbox,#results-footer,#landing,#explainer,.city-results,.card-more,
+  .chev,.approx,#beginBtn,button{display:none !important}
+
+  header{padding:6px 0 4px;text-align:left}
+  h1{font-size:22px;color:#1a1a1a}
+  .sub{display:none}
+
+  /* every .sys card, incl. the summary, prints as a clean bordered block */
+  .sys{background:#fff !important;border:1px solid #ccc !important;border-radius:4px;
+    break-inside:avoid;page-break-inside:avoid;margin-bottom:12px}
+  .sys summary{padding:10px 12px;cursor:default;list-style:none}
+  .sys summary::-webkit-details-marker,.sys summary::marker{display:none}
+  .sys h2{font-size:16px;color:#1a1a1a}
+  .sys-body{padding:0 12px 14px}
+  .summary-sys,.ask-sys{background:#fbf8ee !important}
+  #summary-out .today,.etype{background:#f6f3e8 !important;border:1px solid #ddd8c4 !important;break-inside:avoid}
+  .ask-sys,[style*="linear-gradient(160deg"]{background:#fbf8ee !important;background-image:none !important}
+
+  .res,.etype,.qa{break-inside:avoid;page-break-inside:avoid}
+  table{break-inside:avoid}
+  a{color:#3a3a3a !important;text-decoration:underline}
+
+  .foot-note{border-top:1px solid #ccc;margin-top:20px;padding-top:12px}
+  .foot-note .zh{display:none}
+
+  /* a per-print header with who/when this reading is for */
+  .print-header{display:block !important;margin-bottom:18px;padding-bottom:12px;border-bottom:2px solid #8a6d2f}
+  .print-header .pname{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:#1a1a1a}
+  .print-header .pmeta{font-size:11.5px;color:#555;margin-top:5px;line-height:1.6}
+
+  @page{margin:16mm 14mm}
+}
+
+
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>The <em>Oracle Engine</em></h1>
+  <p class="sub">One birth, read through nine traditions of the world.</p>
+</header>
+
+<!-- ============ LANDING ============ -->
+<section id="landing">
+  <p class="landing-lead">Enter a single birth moment — a name, a date, a place — and watch it read simultaneously through nine of humanity's great systems for finding meaning in numbers and stars. Every calculation runs live in your browser from the real formulas; nothing is stored or sent anywhere.</p>
+
+  <div class="sys-cards">
+    <button class="sys-card" data-sys="num"><h3>Numerology</h3><p>Pythagorean number & letter analysis — your Life Path, Expression, Soul Urge and more.</p><span class="card-more">Learn more →</span></button>
+    <button class="sys-card" data-sys="west"><h3>Western Astrology</h3><p>Your Sun, Moon and rising signs from the tropical zodiac.</p><span class="card-more">Learn more →</span></button>
+    <button class="sys-card" data-sys="cn"><h3>Chinese Ba Zi</h3><p>Your zodiac animal, element and hour pillar in the Four Pillars system.</p><span class="card-more">Learn more →</span></button>
+    <button class="sys-card" data-sys="ved"><h3>Vedic Jyotish</h3><p>The sidereal Sun, Moon rashi and your nakshatra lunar mansion.</p><span class="card-more">Learn more →</span></button>
+    <button class="sys-card" data-sys="zwds"><h3>Zi Wei Dou Shu</h3><p>The imperial "Purple Star" chart — twelve palaces and their stars.</p><span class="card-more">Learn more →</span></button>
+    <button class="sys-card" data-sys="maya"><h3>Mayan Tzolk'in</h3><p>Your day-sign and tone in the 260-day sacred count.</p><span class="card-more">Learn more →</span></button>
+    <button class="sys-card" data-sys="aztec"><h3>Aztec Tonalpohualli</h3><p>The Mesoamerican sister calendar — your tonalli day-sign.</p><span class="card-more">Learn more →</span></button>
+    <button class="sys-card" data-sys="celtic"><h3>Celtic Tree</h3><p>Your ruling tree in the modern Ogham lunar calendar.</p><span class="card-more">Learn more →</span></button>
+    <button class="sys-card" data-sys="hd"><h3>Human Design</h3><p>Your profile lines and Sun gates from this modern synthesis.</p><span class="card-more">Learn more →</span></button>
+  </div>
+  <p style="font-size:12px;color:var(--muted);margin-top:12px;text-align:center">Tap any tradition to learn what it is before you begin.</p>
+
+  <div class="landing-how">
+    <h3>How it works</h3>
+    <ol>
+      <li><b>Enter your name</b> exactly as it appears on your birth certificate — first, middle, and last. The letters power the numerology.</li>
+      <li><b>Enter your birth date</b> — required by every system.</li>
+      <li><b>Add your birth time and city</b> if you can. These are optional, but they unlock your rising sign and the full imperial Zi Wei chart. The time zone and coordinates are worked out automatically from the city.</li>
+      <li><b>Cast the chart</b> — and read all nine traditions side by side, each term explained on hover.</li>
+    </ol>
+  </div>
+
+  <button class="begin" id="beginBtn">Begin ✦</button>
+
+  <p class="disclaimer">These traditions are offered for reflection, insight, and delight — not as science or certainty. The numerology follows the esoteric method set out in Shirley Blackwell Lawrence's <em>The Secret Science of Numerology</em>, presented in the honest historical light of Andrew Gregory's scholarship on the actual Pythagoreans, who did not practise name-numerology as we know it today.</p>
+</section>
+
+<!-- ============ EXPLAINER PAGE ============ -->
+<section id="explainer">
+  <button class="explain-back" id="explainBack">← Back to all traditions</button>
+  <div id="explainBody"></div>
+  <div class="explain-footer">
+    <button class="explain-back" id="explainBack2">← Back to all traditions</button>
+    <button class="begin" id="explainBegin">Begin your reading ✦</button>
+  </div>
+</section>
+
+<!-- ============ APP ============ -->
+<div id="app">
+<nav class="toc" id="toc"><div class="toc-row">
+  <div class="toc-links">
+  <a href="#sys-num">Numerology</a><a href="#sys-west">Western</a><a href="#sys-cn">Chinese</a>
+  <a href="#sys-ved">Vedic</a><a href="#sys-zwds">Zi Wei Dou Shu</a><a href="#sys-maya">Mayan</a>
+  <a href="#sys-aztec">Aztec</a><a href="#sys-celtic">Celtic Tree</a><a href="#sys-hd">Human Design</a>
+  </div>
+  <div class="toc-tools">
+    <button id="expandAll" type="button">Expand all</button>
+    <button id="collapseAll" type="button">Collapse all</button>
+  </div>
+</div></nav>
+<section class="altar">
+  <div class="step"><span class="num">1</span><span class="step-label">Required</span></div>
+  <h2>Your name &amp; birth date</h2>
+  <p class="note">Enter your name as written on your birth certificate. Name and date are needed for every reading.</p>
+  <div class="grid">
+    <div class="name-grid">
+      <div class="field"><label for="firstname">First name<span class="req">*</span></label>
+        <input id="firstname" type="text" placeholder="First" autocomplete="off"></div>
+      <div class="field"><label for="middlename">Middle name</label>
+        <input id="middlename" type="text" placeholder="Middle (if any)" autocomplete="off"></div>
+      <div class="field"><label for="lastname">Last name<span class="req">*</span></label>
+        <input id="lastname" type="text" placeholder="Last" autocomplete="off"></div>
+    </div>
+    <div class="field" style="grid-column:1/-1"><div class="hint">All three combine for your Expression, Soul Urge, Personality &amp; karmic lessons. Middle name optional; first and last required.</div></div>
+    <div class="field"><label for="bdate">Birth date<span class="req">*</span></label><input id="bdate" type="date"></div>
+    <div class="field remember-field" style="grid-column:1/-1">
+      <label class="remember-label"><input type="checkbox" id="rememberMe" checked>
+        <span>💾 Remember my details on this device, so I don't have to retype them next time</span></label>
+      <div class="hint">Stored only in this browser — never sent anywhere. Untick to clear what's saved.</div>
+      <div id="rememberNote" class="remember-note" style="display:none"></div>
+    </div>
+  </div>
+
+  <div class="step-divider"></div>
+  <div class="step"><span class="num">2</span><span class="step-label">Optional — but recommended</span></div>
+  <p class="opt-intro">These sharpen the reading. <b>Birth time</b> unlocks your <b>rising sign</b> and your <b>Zi Wei Dou Shu</b> imperial chart; <b>birth city</b> lets the engine work out your time zone and coordinates automatically. Skip any you don't know — the systems that need them will simply say so.</p>
+  <div class="grid">
+    <div class="field"><label for="btime">Birth time</label><input id="btime" type="time">
+      <div class="hint">As precise as you can. Leave blank if truly unknown (noon is assumed).</div></div>
+    <div class="field citywrap"><label for="citysearch">Birth city</label>
+      <input id="citysearch" type="text" placeholder="Start typing a city…" autocomplete="off">
+      <div class="city-results" id="cityResults"></div>
+      <div class="city-chosen" id="cityChosen"></div>
+      <div class="hint">Sets time zone &amp; coordinates automatically. Type a few letters and pick from the list.</div></div>
+    <div class="field"><label for="gender">Sex</label>
+      <select id="gender"><option value="female">Female</option><option value="male">Male</option></select>
+      <div class="hint">Only used to set the decade &amp; annual-luck direction in Zi Wei Dou Shu — a rule of that tradition.</div></div>
+  </div>
+
+  <details class="adv"><summary><span class="num" style="width:18px;height:18px;font-size:10px;display:inline-flex;margin-right:8px;vertical-align:-3px">3</span>Expert overrides — only if you know these</summary>
+    <p class="opt-intro" style="margin-top:14px">Most people can ignore this. If your city isn't listed you may type coordinates directly; if you already know your <b>lunar birth date</b> (useful in leap-month years, which the auto-conversion can miss by a month) you can enter it to make the Zi Wei chart exact.</p>
+    <div class="grid">
+      <div class="field"><label for="lat">Birth latitude</label><input id="lat" type="number" step="0.01" placeholder="e.g. 43.65"><div class="hint">Auto-filled from your city. North positive, south negative.</div></div>
+      <div class="field"><label for="lon">Birth longitude</label><input id="lon" type="number" step="0.01" placeholder="e.g. -79.38"><div class="hint">Auto-filled from your city. East positive, west negative.</div></div>
+      <div class="field"><label for="utcoff">UTC offset</label><select id="utcoff"></select><div class="hint">Leave on Auto — your city's real time zone and any daylight saving in force that day are applied automatically.</div></div>
+      <div class="field"><label for="lmonth">Lunar month</label><input id="lmonth" type="number" min="1" max="12" placeholder="auto"><div class="hint">Computed automatically from true new moons, including leap months. Leave blank.</div></div>
+      <div class="field"><label for="lday">Lunar day</label><input id="lday" type="number" min="1" max="30" placeholder="auto"><div class="hint">Chinese lunar day, 1–30. Only needed to override the automatic calculation.</div></div>
+    </div>
+  </details>
+  <button class="cast" id="castBtn">✦ Cast the Chart ✦</button>
+  <div class="err" id="err"></div>
+</section>
+
+<div id="results">
+  <details class="sys summary-sys" data-zh="Life" id="sys-summary" open><summary><div class="sys-eyebrow">The Big Picture · In Plain English</div><h2><span class="tip" data-tip="__SYS_Life Summary__">Your Life in One Page</span><span class="chev">︾</span></h2></summary><div class="sys-body" id="summary-out"></div></details>
+  <details class="sys" data-zh="Numbers" id="sys-num" open><summary><div class="sys-eyebrow">System I · Pythagorean</div><h2><span class="tip" data-tip="__SYS_Numerology__">Numerology</span><span class="chev">︾</span></h2></summary><div class="sys-body" id="num-out"></div></details>
+  <details class="sys" data-zh="Stars" id="sys-west" open><summary><div class="sys-eyebrow">System II · Tropical</div><h2><span class="tip" data-tip="__SYS_Western Astrology__">Western Astrology</span> <span class="approx" id="west-approx" style="display:none">Moon/Rising approximate</span><span class="chev">︾</span></h2></summary><div class="sys-body" id="west-out"></div></details>
+  <details class="sys" data-zh="Fate" id="sys-cn" open><summary><div class="sys-eyebrow">System III · Ba Zi Ba Zi</div><h2><span class="tip" data-tip="__SYS_Chinese Astrology__">Chinese Astrology</span><span class="chev">︾</span></h2></summary><div class="sys-body" id="cn-out"></div></details>
+  <details class="sys" data-zh="Vedic" id="sys-ved" open><summary><div class="sys-eyebrow">System IV · Sidereal Jyotish</div><h2><span class="tip" data-tip="__SYS_Vedic Astrology__">Vedic Astrology</span> <span class="approx">Moon positions approximate</span><span class="chev">︾</span></h2></summary><div class="sys-body" id="ved-out"></div></details>
+  <details class="sys" data-zh="Purple" id="sys-zwds" open><summary><div class="sys-eyebrow">System V · Imperial Purple Star Astrology</div><h2><span class="tip" data-tip="__SYS_Zi Wei Dou Shu__">Zi Wei Dou Shu</span> <span class="approx">Lunar conversion ±1 month in leap years — use override</span><span class="chev">︾</span></h2></summary><div class="sys-body" id="zwds-out"></div></details>
+  <details class="sys" data-zh="Sun" id="sys-maya" open><summary><div class="sys-eyebrow">System VI · Tzolk'in</div><h2><span class="tip" data-tip="__SYS_Mayan Astrology__">Mayan Astrology</span><span class="chev">︾</span></h2></summary><div class="sys-body" id="maya-out"></div></details>
+  <details class="sys" data-zh="Body" id="sys-hd" open><summary><div class="sys-eyebrow">System VII · Simplified</div><h2><span class="tip" data-tip="__SYS_Human Design__">Human Design</span> <span class="approx">Sun gates &amp; profile only</span><span class="chev">︾</span></h2></summary><div class="sys-body" id="hd-out"></div></details>
+  <details class="sys" data-zh="Tree" id="sys-celtic" open><summary><div class="sys-eyebrow">System VIII · Ogham Tree Calendar</div><h2><span class="tip" data-tip="__SYS_Celtic Tree Astrology__">Celtic Tree Astrology</span> <span class="approx">Modern (1948) reconstruction, not ancient</span><span class="chev">︾</span></h2></summary><div class="sys-body" id="celtic-out"></div></details>
+  <details class="sys" data-zh="Calendar" id="sys-aztec" open><summary><div class="sys-eyebrow">System IX · Tonalpohualli</div><h2><span class="tip" data-tip="__SYS_Aztec Astrology__">Aztec Astrology</span> <span class="approx">Correlation constant contested — see note</span><span class="chev">︾</span></h2></summary><div class="sys-body" id="aztec-out"></div></details>
+
+</div>
+
+<div id="results-footer" style="display:none">
+  <div style="flex:1;min-width:220px">
+    <button class="recast" id="printBtn" type="button" style="width:100%">🖶 Save as PDF / Print</button>
+    <div id="printNote" class="print-note" style="display:none"></div>
+  </div>
+  <button class="recast" id="recastBtn" type="button">↑ Adjust details &amp; cast again</button>
+</div>
+<div class="foot-note">
+  <div class="zh">THE ART OF NUMBERS</div>
+  All calculations run locally in your browser — real formulas, honest approximations, clearly labeled.<br>
+  Read for insight and delight, not certainty. 🔮
+</div>
+</div><!-- /#app -->
+</div>
+<button class="fab" id="toTop" type="button" title="Back to top" aria-label="Back to top">↑</button>
+<script>
+/* ---------- helpers ---------- */
+const $=id=>document.getElementById(id);
+/* ---------- city database: [name, country, lat, lon, utcStandardOffset] ---------- */
+const CITIES=[
+["Toronto","Canada",43.65,-79.38,-5,"America/Toronto"],["Vancouver","Canada",49.28,-123.12,-8,"America/Vancouver"],["Montreal","Canada",45.50,-73.57,-5,"America/Toronto"],
+["Calgary","Canada",51.05,-114.07,-7,"America/Edmonton"],["Ottawa","Canada",45.42,-75.70,-5,"America/Toronto"],["Edmonton","Canada",53.55,-113.49,-7,"America/Edmonton"],
+["Winnipeg","Canada",49.90,-97.14,-6,"America/Winnipeg"],["Halifax","Canada",44.65,-63.58,-4,"America/Halifax"],
+["New York","USA",40.71,-74.01,-5,"America/New_York"],["Los Angeles","USA",34.05,-118.24,-8,"America/Los_Angeles"],["Chicago","USA",41.88,-87.63,-6,"America/Chicago"],
+["Houston","USA",29.76,-95.37,-6,"America/Chicago"],["Phoenix","USA",33.45,-112.07,-7,"America/Phoenix"],["Philadelphia","USA",39.95,-75.17,-5,"America/New_York"],
+["San Antonio","USA",29.42,-98.49,-6,"America/Chicago"],["San Diego","USA",32.72,-117.16,-8,"America/Los_Angeles"],["Dallas","USA",32.78,-96.80,-6,"America/Chicago"],
+["San Francisco","USA",37.77,-122.42,-8,"America/Los_Angeles"],["Seattle","USA",47.61,-122.33,-8,"America/Los_Angeles"],["Denver","USA",39.74,-104.99,-7,"America/Denver"],
+["Boston","USA",42.36,-71.06,-5,"America/New_York"],["Miami","USA",25.76,-80.19,-5,"America/New_York"],["Atlanta","USA",33.75,-84.39,-5,"America/New_York"],
+["Las Vegas","USA",36.17,-115.14,-8,"America/Los_Angeles"],["Honolulu","USA",21.31,-157.86,-10,"Pacific/Honolulu"],["Anchorage","USA",61.22,-149.90,-9,"America/Anchorage"],
+["London","United Kingdom",51.51,-0.13,0,"Europe/London"],["Manchester","United Kingdom",53.48,-2.24,0,"Europe/London"],["Birmingham","United Kingdom",52.49,-1.89,0,"Europe/London"],
+["Edinburgh","United Kingdom",55.95,-3.19,0,"Europe/London"],["Glasgow","United Kingdom",55.86,-4.25,0,"Europe/London"],["Dublin","Ireland",53.35,-6.26,0,"Europe/Dublin"],
+["Paris","France",48.86,2.35,1,"Europe/Paris"],["Marseille","France",43.30,5.37,1,"Europe/Paris"],["Lyon","France",45.76,4.84,1,"Europe/Paris"],
+["Madrid","Spain",40.42,-3.70,1,"Europe/Madrid"],["Barcelona","Spain",41.39,2.17,1,"Europe/Madrid"],["Berlin","Germany",52.52,13.40,1,"Europe/Berlin"],
+["Munich","Germany",48.14,11.58,1,"Europe/Berlin"],["Hamburg","Germany",53.55,9.99,1,"Europe/Berlin"],["Frankfurt","Germany",50.11,8.68,1,"Europe/Berlin"],
+["Rome","Italy",41.90,12.50,1,"Europe/Rome"],["Milan","Italy",45.46,9.19,1,"Europe/Rome"],["Naples","Italy",40.85,14.27,1,"Europe/Rome"],
+["Amsterdam","Netherlands",52.37,4.90,1,"Europe/Amsterdam"],["Brussels","Belgium",50.85,4.35,1,"Europe/Brussels"],["Vienna","Austria",48.21,16.37,1,"Europe/Vienna"],
+["Zurich","Switzerland",47.38,8.54,1,"Europe/Zurich"],["Geneva","Switzerland",46.20,6.14,1,"Europe/Zurich"],["Lisbon","Portugal",38.72,-9.14,0,"Europe/Lisbon"],
+["Stockholm","Sweden",59.33,18.07,1,"Europe/Stockholm"],["Oslo","Norway",59.91,10.75,1,"Europe/Oslo"],["Copenhagen","Denmark",55.68,12.57,1,"Europe/Copenhagen"],
+["Helsinki","Finland",60.17,24.94,2,"Europe/Helsinki"],["Warsaw","Poland",52.23,21.01,1,"Europe/Warsaw"],["Prague","Czechia",50.09,14.42,1,"Europe/Prague"],
+["Budapest","Hungary",47.50,19.04,1,"Europe/Budapest"],["Athens","Greece",37.98,23.73,2,"Europe/Athens"],["Moscow","Russia",55.76,37.62,3,"Europe/Moscow"],
+["Istanbul","Turkey",41.01,28.98,3,"Europe/Istanbul"],["Kyiv","Ukraine",50.45,30.52,2,"Europe/Kyiv"],["Bucharest","Romania",44.43,26.10,2,"Europe/Bucharest"],
+["Beijing","China",39.90,116.41,8,"Asia/Shanghai"],["Shanghai","China",31.23,121.47,8,"Asia/Shanghai"],["Guangzhou","China",23.13,113.26,8,"Asia/Shanghai"],
+["Shenzhen","China",22.54,114.06,8,"Asia/Shanghai"],["Chengdu","China",30.57,104.07,8,"Asia/Shanghai"],["Hong Kong","China",22.32,114.17,8,"Asia/Hong_Kong"],
+["Taipei","Taiwan",25.03,121.57,8,"Asia/Taipei"],["Tokyo","Japan",35.68,139.69,9,"Asia/Tokyo"],["Osaka","Japan",34.69,135.50,9,"Asia/Tokyo"],
+["Kyoto","Japan",35.01,135.77,9,"Asia/Tokyo"],["Seoul","South Korea",37.57,126.98,9,"Asia/Seoul"],["Busan","South Korea",35.18,129.08,9,"Asia/Seoul"],
+["Singapore","Singapore",1.35,103.82,8,"Asia/Singapore"],["Bangkok","Thailand",13.76,100.50,7,"Asia/Bangkok"],["Kuala Lumpur","Malaysia",3.14,101.69,8,"Asia/Kuala_Lumpur"],
+["Jakarta","Indonesia",-6.21,106.85,7,"Asia/Jakarta"],["Manila","Philippines",14.60,120.98,8,"Asia/Manila"],["Ho Chi Minh City","Vietnam",10.82,106.63,7,"Asia/Ho_Chi_Minh"],
+["Hanoi","Vietnam",21.03,105.85,7,"Asia/Ho_Chi_Minh"],["New Delhi","India",28.61,77.21,5.5,"Asia/Kolkata"],["Mumbai","India",19.08,72.88,5.5,"Asia/Kolkata"],
+["Bangalore","India",12.97,77.59,5.5,"Asia/Kolkata"],["Chennai","India",13.08,80.27,5.5,"Asia/Kolkata"],["Kolkata","India",22.57,88.36,5.5,"Asia/Kolkata"],
+["Hyderabad","India",17.39,78.49,5.5,"Asia/Kolkata"],["Karachi","Pakistan",24.86,67.01,5,"Asia/Karachi"],["Lahore","Pakistan",31.55,74.34,5,"Asia/Karachi"],
+["Dhaka","Bangladesh",23.81,90.41,6,"Asia/Dhaka"],["Colombo","Sri Lanka",6.93,79.86,5.5,"Asia/Colombo"],["Kathmandu","Nepal",27.72,85.32,5.75,"Asia/Kathmandu"],
+["Dubai","UAE",25.20,55.27,4,"Asia/Dubai"],["Abu Dhabi","UAE",24.45,54.38,4,"Asia/Dubai"],["Riyadh","Saudi Arabia",24.71,46.68,3,"Asia/Riyadh"],
+["Tel Aviv","Israel",32.09,34.78,2,"Asia/Jerusalem"],["Jerusalem","Israel",31.77,35.21,2,"Asia/Jerusalem"],["Tehran","Iran",35.69,51.39,3.5,"Asia/Tehran"],
+["Baghdad","Iraq",33.31,44.36,3,"Asia/Baghdad"],["Doha","Qatar",25.29,51.53,3,"Asia/Qatar"],["Cairo","Egypt",30.04,31.24,2,"Africa/Cairo"],
+["Johannesburg","South Africa",-26.20,28.05,2,"Africa/Johannesburg"],["Cape Town","South Africa",-33.92,18.42,2,"Africa/Johannesburg"],["Nairobi","Kenya",-1.29,36.82,3,"Africa/Nairobi"],
+["Lagos","Nigeria",6.52,3.38,1,"Africa/Lagos"],["Accra","Ghana",5.60,-0.19,0,"Africa/Accra"],["Casablanca","Morocco",33.57,-7.59,0,"Africa/Casablanca"],
+["Addis Ababa","Ethiopia",9.03,38.74,3,"Africa/Addis_Ababa"],["Sydney","Australia",-33.87,151.21,10,"Australia/Sydney"],["Melbourne","Australia",-37.81,144.96,10,"Australia/Melbourne"],
+["Brisbane","Australia",-27.47,153.03,10,"Australia/Brisbane"],["Perth","Australia",-31.95,115.86,8,"Australia/Perth"],["Adelaide","Australia",-34.93,138.60,9.5,"Australia/Adelaide"],
+["Auckland","New Zealand",-36.85,174.76,12,"Pacific/Auckland"],["Wellington","New Zealand",-41.29,174.78,12,"Pacific/Auckland"],
+["Mexico City","Mexico",19.43,-99.13,-6,"America/Mexico_City"],["Guadalajara","Mexico",20.67,-103.35,-6,"America/Mexico_City"],["Monterrey","Mexico",25.69,-100.32,-6,"America/Monterrey"],
+["São Paulo","Brazil",-23.55,-46.63,-3,"America/Sao_Paulo"],["Rio de Janeiro","Brazil",-22.91,-43.17,-3,"America/Sao_Paulo"],["Brasília","Brazil",-15.79,-47.88,-3,"America/Sao_Paulo"],
+["Buenos Aires","Argentina",-34.60,-58.38,-3,"America/Argentina/Buenos_Aires"],["Santiago","Chile",-33.45,-70.67,-4,"America/Santiago"],["Lima","Peru",-12.05,-77.04,-5,"America/Lima"],
+["Bogotá","Colombia",4.71,-74.07,-5,"America/Bogota"],["Caracas","Venezuela",10.48,-66.90,-4,"America/Caracas"],["Quito","Ecuador",-0.18,-78.47,-5,"America/Guayaquil"],
+["Montevideo","Uruguay",-34.90,-56.16,-3,"America/Montevideo"],["Havana","Cuba",23.11,-82.37,-5,"America/Havana"],["San Juan","Puerto Rico",18.47,-66.11,-4,"America/Puerto_Rico"],
+["Reykjavik","Iceland",64.15,-21.94,0,"Atlantic/Reykjavik"]
+];
+
+const norm=(a,m)=>((a%m)+m)%m;
+const D2R=Math.PI/180, R2D=180/Math.PI;
+const SIGNS=["Aries","Taurus","Gemini","Cancer","Leo","Virgo","Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces"];
+const SIGN_INFO={
+Aries:"Cardinal Fire — the initiator: direct, courageous, first through the door, impatient with delay.",
+Taurus:"Fixed Earth — the builder of comfort: steady, sensual, loyal, immovable once decided.",
+Gemini:"Mutable Air — the messenger: curious, quick, verbal, energized by variety and exchange.",
+Cancer:"Cardinal Water — the protector: intuitive, nurturing, memory-keeping, guarded until trust is earned.",
+Leo:"Fixed Fire — the sovereign: warm, expressive, proud, built to be seen and to be generous.",
+Virgo:"Mutable Earth — the refiner: precise, service-minded, analytical, improving everything it touches.",
+Libra:"Cardinal Air — the diplomat: relational, aesthetic, fairness-driven, at its best in partnership.",
+Scorpio:"Fixed Water — the investigator: intense, strategic, private, drawn to what is hidden and true.",
+Sagittarius:"Mutable Fire — the explorer: candid, optimistic, freedom-loving, aimed at the far horizon.",
+Capricorn:"Cardinal Earth — the executive: disciplined, ambitious, composed, playing the long game.",
+Aquarius:"Fixed Air — the reformer: original, detached, humanitarian, loyal to ideas and communities.",
+Pisces:"Mutable Water — the mystic: empathic, imaginative, boundary-blurring, tuned to the unseen current."};
+const NUM_MEAN={
+1:"The Initiator — independence, leadership, originality. Builds under its own name; stalls when waiting for permission.",
+2:"The Diplomat — partnership, sensitivity, tact. Leads by reading the room; must guard against self-erasure.",
+3:"The Voice — expression, creativity, social magnetism. Gifted communicator whose trap is charming scatter.",
+4:"The Builder — structure, discipline, follow-through. Turns visions into systems; must not calcify into rigidity.",
+5:"The Free Spirit — change, freedom, versatility. Thrives on variety and motion; the lesson is finishing.",
+6:"The Guardian — responsibility, nurture, harmony. The one others lean on; must learn to receive as well as give.",
+7:"The Seeker — analysis, intuition, solitude. A mind built for depth; wary of what it cannot verify.",
+8:"The Executive — power, money, material mastery. Gets back exactly the energy invested; the lesson is right use of power.",
+9:"The Humanitarian — compassion, completion, breadth. Feels the whole world; must learn to let chapters end.",
+11:"Master 11 — the Illuminator: heightened intuition and nervous voltage. Inspires others when grounded; frays when not.",
+22:"Master 22 — the Master Builder: visionary structure on a grand scale. The most powerful number when patience holds.",
+33:"Master 33 — the Master Teacher: compassion raised to vocation. Service through uplifting others."};
+const PY={1:"Plant flags — beginnings, independence, bold starts.",2:"Tend bonds — patience, partnership, slow growth.",3:"Speak — visibility, creativity, social bloom.",4:"Build — systems, foundations, unglamorous work that pays later.",5:"Leap — change, travel, freedom; ride the pivot.",6:"Commit — home, duty, relationships deepen.",7:"Retreat — study, reflection, inner work; lie low.",8:"Harvest — power, money, recognition; ask boldly.",9:"Release — endings, forgiveness, clearing the field for the next cycle."};
+const LETVAL={a:1,b:2,c:3,d:4,e:5,f:6,g:7,h:8,i:9,j:1,k:2,l:3,m:4,n:5,o:6,p:7,q:8,r:9,s:1,t:2,u:3,v:4,w:5,x:6,y:7,z:8};
+const STEMS=["Jia (Yang Wood)","Yi (Yin Wood)","Bing (Yang Fire)","Ding (Yin Fire)","Wu (Yang Earth)","Ji (Yin Earth)","Geng (Yang Metal)","Xin (Yin Metal)","Ren (Yang Water)","Gui (Yin Water)"];
+const BRANCH_ZH=["Rat","Ox","Tiger","Rabbit","Dragon","Snake","Horse","Goat","Monkey","Rooster","Dog","Pig"];
+const ANIMALS=["Rat","Ox","Tiger","Rabbit","Dragon","Snake","Horse","Goat","Monkey","Rooster","Dog","Pig"];
+const ANIMAL_MEAN={Rat:"resourceful, quick-witted, opportunity-sensing",Ox:"steadfast, patient, quietly unstoppable",Tiger:"bold, magnetic, born to lead the charge",Rabbit:"gentle, diplomatic, elegantly self-protective",Dragon:"charismatic, ambitious, luck-touched",Snake:"wise, private, strategically patient",Horse:"energetic, freedom-loving, made for the open road",Goat:"artistic, kind, home-hearted",Monkey:"inventive, playful, endlessly clever",Rooster:"precise, candid, proudly competent",Dog:"loyal, just, guardian of the fair deal",Pig:"generous, sincere, socially blessed and fortune-fed"};
+const NAKSHATRA=[["Ashwini","Ketu — the healer-pioneers: swift starts, medicine, rescue"],["Bharani","Venus — the bearer: creation, endurance, transformation through limits"],["Krittika","Sun — the blade: cutting clarity, purification by fire"],["Rohini","Moon — the garden: beauty, growth, magnetic abundance"],["Mrigashira","Mars — the searcher: gentle curiosity, the eternal quest"],["Ardra","Rahu — the storm: breakthrough through upheaval"],["Punarvasu","Jupiter — the return of light: renewal, optimism, second chances"],["Pushya","Saturn — the nourisher: care, counsel, the most auspicious star"],["Ashlesha","Mercury — the serpent: hypnotic insight, hidden knowledge"],["Magha","Ketu — the throne: ancestry, authority, royal bearing"],["Purva Phalguni","Venus — the couch: pleasure, art, charisma at rest"],["Uttara Phalguni","Sun — the patron: contracts, generosity, reliable power"],["Hasta","Moon — the hand: skill, craft, clever dexterity"],["Chitra","Mars — the jewel: design, brilliance, the architect's eye"],["Swati","Rahu — the wind: independence, trade, self-made motion"],["Vishakha","Jupiter — the forked branch: ambition, single-pointed pursuit"],["Anuradha","Saturn — the friend: devotion, alliance, success abroad"],["Jyeshtha","Mercury — the elder: protective seniority, hard-won rank"],["Mula","Ketu — the root: investigation to the core, sacred demolition"],["Purva Ashadha","Venus — the invincible: declarations, early victory"],["Uttara Ashadha","Sun — the universal: lasting victory, unshakeable ethics"],["Shravana","Moon — the ear: listening, learning, the connected mind"],["Dhanishta","Mars — the drum: rhythm, wealth, group achievement"],["Shatabhisha","Rahu — the hundred healers: secrets, verification, unmasking illusions"],["Purva Bhadrapada","Jupiter — the fire-walker: intensity, idealism, the double edge"],["Uttara Bhadrapada","Saturn — the deep sea: wisdom, restraint, the long calm"],["Revati","Mercury — the shepherd: safe passage, compassion, completion"]];
+const MAYA_DAYS=[["Imix","Crocodile — primal creation and nurture; births things, must learn to finish them"],["Ik'","Wind — breath, voice, and the unseen message"],["Ak'b'al","Night — the dream-house; intuition born in darkness"],["K'an","Seed — potential, ripening, the patient germ of abundance"],["Chikchan","Serpent — life-force, instinct, electric vitality"],["Kimi","Death — transformation, ancestral ties, graceful endings"],["Manik'","Deer — the healer's hand; grace, service, quiet strength"],["Lamat","Star — abundance, harmony, the multiplying light"],["Muluk","Water — offering, emotion, the moon's debt and gift"],["Ok","Dog — loyalty, heart, guidance through dark passes"],["Chuwen","Monkey — the artisan-trickster; weaving time and craft"],["Eb'","Road — the journey and the traveler; humble, destined motion"],["B'en","Reed — authority, pillars, the home's standing corn"],["Ix","Jaguar — magic, night-vision, the temple's guardian"],["Men","Eagle — vision from altitude; ambition with wings"],["K'ib'","Owl/Vulture — forgiveness, karma settled, the wise pardon"],["Kab'an","Earth — thought, movement, the quake of ideas"],["Etz'nab'","Flint — the mirror-blade of truth; cuts illusion clean"],["Kawak","Storm — cleansing turbulence, the gathering rain"],["Ajaw","Sun — the lord of light; completion, flowering, mastery"]];
+const MAYA_TONES=["Magnetic — unify: attract the purpose","Lunar — polarize: face the challenge","Electric — activate: bond and serve","Self-Existing — define: give it form","Overtone — empower: command the radiance","Rhythmic — organize: balance the equal","Resonant — channel: attune and inspire","Galactic — harmonize: model integrity","Solar — pulse: realize the intention","Planetary — perfect: manifest it","Spectral — liberate: dissolve what confines","Crystal — cooperate: universalize","Cosmic — endure: transcend and carry over"];
+const ZWDS_STARS={ziwei:["Zi Wei","Zi Wei — the Emperor: dignity, self-governance, natural authority"],tianji:["Tian Ji","Tian Ji — the Strategist: quick analysis, adaptation, clever counsel"],taiyang:["Tai Yang","Tai Yang — the Sun: visibility, generosity, public credibility"],wuqu:["Wu Qu","Wu Qu — the Finance General: decisive, hardworking, deeds over words"],tiantong:["Tian Tong","Tian Tong — Contentment: gentleness, blessings, the soft landing"],lianzhen:["Lian Zhen","Lian Zhen — the Diplomat-Politician: charm, aesthetics, strategy"],tianfu:["Tian Fu","Tian Fu — the Treasury: stability, resources, conservative strength"],taiyin:["Tai Yin","Tai Yin — the Moon: interiority, rest, quiet accumulation"],tanlang:["Tan Lang","Tan Lang — Desire: charisma, versatility, appetite in every sense"],jumen:["Ju Men","Ju Men — the Great Gate: speech, debate, the probing mouth"],tianxiang:["Tian Xiang","Tian Xiang — the Chancellor: loyalty, service, the seal-bearer"],tianliang:["Tian Liang","Tian Liang — the Sage: protection, truth-telling, elder wisdom"],qisha:["Qi Sha","Qi Sha — the General: bold, independent, thrives in challenge"],pojun:["Po Jun","Po Jun — the Army Breaker: demolition and rebuilding, the pioneer of ruins"]};
+const PALACE_NAMES=["Life Life Palace","Siblings Siblings","Spouse Spouse","Children Children","Wealth Wealth","Health Health","Travel Travel","Friends Friends","Career Career","Property Property","Fortune Fortune","Parents Parents"];
+const NAYIN=["Metal","Fire","Wood","Earth","Metal","Fire","Water","Earth","Metal","Wood","Water","Earth","Fire","Wood","Water","Metal","Fire","Wood","Earth","Metal","Fire","Water","Earth","Metal","Wood","Water","Earth","Fire","Wood","Water"];
+const BUREAU={Water:2,Wood:3,Metal:4,Earth:5,Fire:6};
+const SIHUA={0:["lianzhen","pojun","wuqu","taiyang"],1:["tianji","tianliang","ziwei","taiyin"],2:["tiantong","tianji","(Wen Chang Wen Chang — minor)","lianzhen"],3:["taiyin","tiantong","tianji","jumen"],4:["tanlang","taiyin","(You Bi You Bi — minor)","tianji"],5:["wuqu","tanlang","tianliang","(Wen Qu Wen Qu — minor)"],6:["taiyang","wuqu","taiyin","tiantong"],7:["jumen","taiyang","(Wen Qu Wen Qu — minor)","(Wen Chang Wen Chang — minor)"],8:["tianliang","ziwei","(Zuo Fu Zuo Fu — minor)","wuqu"],9:["pojun","jumen","taiyin","tanlang"]};
+const HD_WHEEL=[41,19,13,49,30,55,37,63,22,36,25,17,21,51,42,3,27,24,2,23,8,20,16,35,45,12,15,52,39,53,62,56,31,33,7,4,29,59,40,64,47,6,46,18,48,57,32,50,28,44,1,43,14,34,9,5,26,11,10,58,38,54,61,60];
+const HD_LINES={1:"Line 1 — the Investigator: security through deep study of the foundation.",2:"Line 2 — the Hermit: natural talent that others call out of retreat.",3:"Line 3 — the Experimenter: mastery through trial, error, and resilience.",4:"Line 4 — the Opportunist: influence flowing through network and friendship.",5:"Line 5 — the Heretic: projected upon; the practical savior of strangers.",6:"Line 6 — the Role Model: three-act life ripening into lived example."};
+
+/* ---------- numerology ---------- */
+function reduce(n,keepM=true){while(n>9){if(keepM&&(n===11||n===22||n===33))return n;n=String(n).split("").reduce((a,c)=>a+ +c,0)}return n}
+function karmic(n){return [13,14,16,19].includes(n)?n:0}
+function sumDigits(n){return String(n).split("").reduce((a,c)=>a+ +c,0)}
+function isVowelAt(w,i){const c=w[i];if("aeiou".includes(c))return true;if(c!=="y")return false;const prev=i>0?w[i-1]:"",next=i<w.length-1?w[i+1]:"";return !("aeiou".includes(next)&&!"aeiou".includes(prev)&&i===0)&&!"aeiou".includes(prev);}
+function nameNumbers(name){
+  const words=name.toLowerCase().replace(/[^a-z\s-]/g,"").split(/[\s-]+/).filter(Boolean);
+  let expr=0,soul=0,pers=0;const present=new Set();
+  for(const w of words){let we=0,ws=0,wp=0;
+    for(let i=0;i<w.length;i++){const v=LETVAL[w[i]];if(!v)continue;present.add(v);we+=v;if(isVowelAt(w,i))ws+=v;else wp+=v;}
+    expr+=reduce(we);soul+=reduce(ws);pers+=reduce(wp);}
+  const missing=[];for(let k=1;k<=9;k++)if(!present.has(k))missing.push(k);
+  return{expr:{raw:expr,val:reduce(expr)},soul:{raw:soul,val:reduce(soul)},pers:{raw:pers,val:reduce(pers)},missing};
+}
+function lifePath(y,m,d){const ry=reduce(sumDigits(y)),rm=reduce(m),rd=reduce(d);const total=ry+rm+rd;
+  const preSum=sumDigits(y)+m+d; /* karmic check on classic sums */
+  const kd=[karmic(m+d+sumDigits(y)),karmic(total)].find(x=>x)||0;
+  return{val:reduce(total),raw:total,kd,rm,rd};}
+function personalCycles(bm,bd){const now=new Date();
+  const py=reduce(reduce(bm)+reduce(bd)+reduce(sumDigits(now.getFullYear())),false);
+  const pm=reduce(py+reduce(now.getMonth()+1),false);
+  const pd=reduce(pm+reduce(now.getDate()),false);
+  return{py,pm,pd};}
+
+/* ---------- astronomy ---------- */
+function jdn(y,m,d){const a=Math.floor((14-m)/12),yy=y+4800-a,mm=m+12*a-3;
+  return d+Math.floor((153*mm+2)/5)+365*yy+Math.floor(yy/4)-Math.floor(yy/100)+Math.floor(yy/400)-32045;}
+function jdFrom(y,m,d,hUTC){return jdn(y,m,d)+(hUTC-12)/24;}
+/* Sun apparent geocentric longitude — Meeus Ch.25 (accurate ~0.01°) */
+function sunLon(jd){
+  const T=(jd-2451545.0)/36525;
+  const L0=norm(280.46646+36000.76983*T+0.0003032*T*T,360);
+  const M=norm(357.52911+35999.05029*T-0.0001537*T*T,360)*D2R;
+  const C=(1.914602-0.004817*T-0.000014*T*T)*Math.sin(M)
+        +(0.019993-0.000101*T)*Math.sin(2*M)+0.000289*Math.sin(3*M);
+  const om=(125.04-1934.136*T)*D2R;
+  return norm(L0+C-0.00569-0.00478*Math.sin(om),360);}
+/* Moon longitude — Meeus Ch.47 truncated ELP-2000/82 (accurate ~0.003°) */
+function moonLon(jd){
+  const T=(jd-2451545.0)/36525;
+  const Lp=norm(218.3164477+481267.88123421*T-0.0015786*T*T+T*T*T/538841-T*T*T*T/65194000,360);
+  const D=norm(297.8501921+445267.1114034*T-0.0018819*T*T+T*T*T/545868-T*T*T*T/113065000,360)*D2R;
+  const M=norm(357.5291092+35999.0502909*T-0.0001536*T*T+T*T*T/24490000,360)*D2R;
+  const Mp=norm(134.9633964+477198.8675055*T+0.0087414*T*T+T*T*T/69699-T*T*T*T/14712000,360)*D2R;
+  const F=norm(93.2720950+483202.0175233*T-0.0036539*T*T-T*T*T/3526000+T*T*T*T/863310000,360)*D2R;
+  const E=1-0.002516*T-0.0000074*T*T;
+  const terms=[[0,0,1,0,6288774],[2,0,-1,0,1274027],[2,0,0,0,658314],[0,0,2,0,213618],
+    [0,1,0,0,-185116],[0,0,0,2,-114332],[2,0,-2,0,58793],[2,-1,-1,0,57066],
+    [2,0,1,0,53322],[2,-1,0,0,45758],[0,1,-1,0,-40923],[1,0,0,0,-34720],
+    [0,1,1,0,-30383],[2,0,0,-2,15327],[0,0,1,2,-12528],[0,0,1,-2,10980],
+    [4,0,-1,0,10675],[0,0,3,0,10034],[4,0,-2,0,8548],[2,1,-1,0,-7888],
+    [2,1,0,0,-6766],[1,0,-1,0,-5163],[1,1,0,0,4987],[2,-1,1,0,4036],
+    [2,0,2,0,3994],[4,0,0,0,3861],[2,0,-3,0,3665],[0,1,-2,0,-2689],
+    [2,0,-1,2,-2602],[2,-1,-2,0,2390],[1,0,1,0,-2348],[2,-2,0,0,2236],
+    [0,1,2,0,-2120],[0,2,0,0,-2069],[2,-2,-1,0,2048],[2,0,1,-2,-1773],
+    [2,0,0,2,-1595],[4,-1,-1,0,1215],[0,0,2,2,-1110],[3,0,-1,0,-892],
+    [2,1,1,0,-810],[4,-1,-2,0,759],[0,2,-1,0,-713],[2,2,-1,0,-700],
+    [2,1,-2,0,691],[2,-1,0,-2,596],[4,0,1,0,549],[0,0,4,0,537],
+    [4,-1,0,0,520],[1,0,-2,0,-487],[2,1,0,-2,-399],[0,0,2,-2,-381],
+    [1,1,1,0,351],[3,0,-2,0,-340],[4,0,-3,0,330],[2,-1,2,0,327],
+    [0,2,1,0,-323],[1,1,-1,0,299],[2,0,3,0,294]];
+  let sum=0;
+  for(const t of terms){let v=t[4]*Math.sin(t[0]*D+t[1]*M+t[2]*Mp+t[3]*F);
+    const am=Math.abs(t[1]);if(am===1)v*=E;else if(am===2)v*=E*E;sum+=v;}
+  return norm(Lp+sum/1000000,360);}
+function signOf(lon){return SIGNS[Math.floor(norm(lon,360)/30)];}
+/* mean obliquity of the ecliptic — IAU/Meeus (22.2); J2000.0 = 23.439291° (Tatum, Standish) */
+function obliquity(jd){const T=(jd-2451545.0)/36525;
+  return 23.439291111-0.0130041667*T-1.638889e-7*T*T+5.036111e-7*T*T*T;}
+function ascendant(jd,lat,lonE){const T=(jd-2451545.0)/36525;let gmst=norm(280.46061837+360.98564736629*(jd-2451545.0)+0.000387933*T*T,360);
+  const ramc=norm(gmst+lonE,360)*D2R;const e=obliquity(jd)*D2R,phi=lat*D2R;
+  let asc=Math.atan2(-Math.cos(ramc),Math.sin(ramc)*Math.cos(e)+Math.tan(phi)*Math.sin(e))*R2D;
+  asc=norm(asc,360);const mc=norm(Math.atan2(Math.sin(ramc),Math.cos(ramc)*Math.cos(e))*R2D,360);
+  if(norm(asc-mc,360)>180)asc=norm(asc+180,360);return asc;}
+/* Lahiri/Chitrapaksha ayanamsa — Govt of India standard, J2000.0 = 23.853222°, ~50.29″/yr */
+function ayanamsa(jd){return 23.853222+0.0139728*((jd-2451545.0)/365.25);}
+
+/* ---------- lunar approximation ---------- */
+const SYNODIC=29.530588853,NM_EPOCH=2451550.26; /* Jan 6 2000 18:14 UT */
+function lunation(jd){return Math.floor((jd-NM_EPOCH)/SYNODIC);}
+function newMoonJD(k){return NM_EPOCH+k*SYNODIC;}
+/* ===== TRUE CHINESE LUNAR CALENDAR =====
+   Rules (unanimous across sources incl. ytliu0, Hermetic, Explanatory Supplement §15.8.3):
+     - all reckoning at meridian 120°E (UTC+8), civil days midnight-to-midnight
+     - a month begins on the DAY containing the astronomical new moon
+     - the winter solstice (sun longitude 270°) always falls in month 11
+     - a sui (solstice to solstice) with 13 months is a leap year; the leap month is the
+       FIRST month containing no zhongqi (major solar term = sun longitude a multiple of 30°)
+     - the leap month repeats the preceding month's number
+   Uses our validated Meeus sun/moon, so new moons land within ~2 minutes.               */
+const CN_TZ=8/24;
+function cnDay(jd){return Math.floor(jd+CN_TZ+0.5);}          /* civil day number at 120°E */
+function elongSM(jd){return norm(moonLon(jd)-sunLon(jd)+180,360)-180;}
+function newMoonNear(jd0){                                     /* first new moon at/after jd0 */
+  let a=jd0,b=jd0+1,prev=elongSM(jd0);
+  for(let x=jd0;x<=jd0+45;x+=0.5){const e=elongSM(x);if(prev<0&&e>=0){a=x-0.5;b=x;break;}prev=e;}
+  for(let i=0;i<50;i++){const mid=(a+b)/2;if(elongSM(mid)<0)a=mid;else b=mid;}
+  return (a+b)/2;}
+function solarTermNear(jd0,deg){                               /* first crossing of sun lon = deg */
+  const f=x=>norm(sunLon(x)-deg+180,360)-180;
+  let a=jd0,b=jd0+1,prev=f(jd0);
+  for(let x=jd0;x<=jd0+400;x+=1){const e=f(x);if(prev<0&&e>=0){a=x-1;b=x;break;}prev=e;}
+  for(let i=0;i<50;i++){const mid=(a+b)/2;if(f(mid)<0)a=mid;else b=mid;}
+  return (a+b)/2;}
+function suiFor(year){                                          /* month-11 new moon of the sui opened by WS(year) */
+  const ws=solarTermNear(jdn(year,12,1),270);
+  let nm=newMoonNear(ws-32);
+  while(cnDay(newMoonNear(nm+25))<=cnDay(ws))nm=newMoonNear(nm+25);
+  return{ws,m11:nm};}
+function hasZhongqi(a,b){                                       /* any major solar term inside [a,b)? */
+  for(let k=0;k<12;k++){const target=norm(270+k*30,360);
+    for(const probe of [a-40,a]){const t=solarTermNear(probe,target);
+      if(cnDay(t)>=cnDay(a)&&cnDay(t)<cnDay(b))return true;}}
+  return false;}
+function chineseLunar(y,m,d){
+  /* NOTE ON CONVENTION: the Chinese calendar is a DATE->DATE mapping. A person born on
+     Nov 2 local time has the lunar date belonging to Nov 2, regardless of what the clock
+     read in China at that instant. So we map the LOCAL CIVIL DATE, which is what
+     practitioners and reference software (e.g. Windada) do. The 120°E meridian governs
+     where the month boundaries fall, not which calendar day the birth is assigned to. */
+  const dayNum=jdn(y,m,d);
+  let s=suiFor(y-1), sNext=suiFor(y);
+  if(dayNum>=cnDay(sNext.m11)){s=sNext;sNext=suiFor(y+1);}
+  const nms=[s.m11];let cur=s.m11;
+  while(cnDay(cur)<cnDay(sNext.m11)){cur=newMoonNear(cur+25);nms.push(cur);}
+  const leapYear=(nms.length-1)===13;
+  const labels=[];let num=11,leapDone=false;
+  for(let i=0;i<nms.length-1;i++){
+    const a=nms[i],b=nms[i+1];
+    if(leapYear&&!leapDone&&i>0&&!hasZhongqi(a,b)){
+      labels.push({num:labels[labels.length-1].num,leap:true,start:a,end:b,"dasha":"The Vimshottari Dasha — Vedic astrology's main timing system. A 120-year cycle of planetary chapters, starting from where your Moon sat at birth.","tzused":"The UTC offset actually applied to your birth time, and where it came from. An hour's error shifts the rising sign by roughly 15 degrees."});leapDone=true;
+    }else{labels.push({num,leap:false,start:a,end:b});num=num===12?1:num+1;}}
+  for(const L of labels)
+    if(dayNum>=cnDay(L.start)&&dayNum<cnDay(L.end))
+      return{month:L.num,day:dayNum-cnDay(L.start)+1,leap:L.leap,leapYear};
+  return{month:1,day:1,leap:false,leapYear};}
+function jdToDate(jd){let z=Math.floor(jd+0.5),a=z;if(z>=2299161){const al=Math.floor((z-1867216.25)/36524.25);a=z+1+al-Math.floor(al/4);}
+  const b=a+1524,c=Math.floor((b-122.1)/365.25),dd=Math.floor(365.25*c),e=Math.floor((b-dd)/30.6001);
+  const d=b-dd-Math.floor(30.6001*e),m=e<14?e-1:e-13,y=m>2?c-4716:c-4715;return{y,m,d};}
+
+/* ---------- chinese ---------- */
+function chinesePillars(y,m,d,hour){
+  const effY=(m<2||(m===2&&d<4))?y-1:y; /* Li Chun ≈ Feb 4 */
+  const stem=norm(effY-4,10),branch=norm(effY-4,12);
+  const hourBranch=norm(Math.floor((hour+1)/2),12);
+  return{stem,branch,hourBranch,effY};}
+
+/* ---------- zwds ---------- */
+function zwds(yearStem,lmonth,lday,hourBranch){
+  const ming=norm(2+(lmonth-1)-hourBranch,12), shen=norm(2+(lmonth-1)+hourBranch,12);
+  const tigerStart=[2,4,6,8,0][yearStem%5];
+  const mingStem=norm(tigerStart+norm(ming-2,12),10);
+  let jz=0;for(let i=0;i<60;i++)if(i%10===mingStem&&i%12===ming){jz=i;break;}
+  const elem=NAYIN[Math.floor(jz/2)],bureau=BUREAU[elem];
+  const q=Math.ceil(lday/bureau),r=q*bureau-lday;
+  const zw=norm(r%2===0?2+(q-1)+r:2+(q-1)-r,12);
+  const fu=norm(4-zw,12);
+  const pos={ziwei:zw,tianji:norm(zw-1,12),taiyang:norm(zw-3,12),wuqu:norm(zw-4,12),tiantong:norm(zw-5,12),lianzhen:norm(zw-8,12),
+    tianfu:fu,taiyin:norm(fu+1,12),tanlang:norm(fu+2,12),jumen:norm(fu+3,12),tianxiang:norm(fu+4,12),tianliang:norm(fu+5,12),qisha:norm(fu+6,12),pojun:norm(fu+10,12)};
+  const palaces={};for(let k=0;k<12;k++)palaces[norm(ming-k,12)]=PALACE_NAMES[k];
+  return{ming,shen,elem,bureau,pos,palaces,sihua:SIHUA[yearStem]};}
+
+/* ===== VIMSHOTTARI DASHA (BPHS Ch.46) =====
+   Cross-confirmed: Bansal (ICAS Jyotisha Praveen text), Kapoor (Bharatiya Vidya Bhawan),
+   plus independent calculator references. 120-year cycle; start lord = ruler of the birth
+   Moon's nakshatra; balance = remaining fraction of that nakshatra × the lord's years.     */
+const VD_SEQ=[["Ketu",7],["Venus",20],["Sun",6],["Moon",10],["Mars",7],["Rahu",18],["Jupiter",16],["Saturn",19],["Mercury",17]];
+const VD_TOTAL=120, VD_YEARDAYS=365.2425;
+const VD_MEAN={Ketu:"cutting away, letting go, and the search for meaning beyond the material",
+  Venus:"relationships, beauty, comfort, and what you value",
+  Sun:"authority, visibility, confidence, and stepping into your own light",
+  Moon:"feeling, home, care, and emotional life",
+  Mars:"drive, courage, conflict, and decisive action",
+  Rahu:"ambition, hunger, the unfamiliar, and rapid worldly gain",
+  Jupiter:"growth, learning, generosity, and widening horizons",
+  Saturn:"work, discipline, delay, endurance, and the slow building of something real",
+  Mercury:"thinking, communication, commerce, and skill"};
+function vimshottari(sidMoonLon,birthJD){
+  const span=360/27, n=Math.floor(sidMoonLon/span), traversed=sidMoonLon-n*span;
+  const [lord,years]=VD_SEQ[n%9];
+  const balance=years*(1-traversed/span);
+  const out=[{lord,years:balance,start:birthJD,end:birthJD+balance*VD_YEARDAYS,partial:true}];
+  let t=birthJD+balance*VD_YEARDAYS;
+  for(let i=1;i<9;i++){const [L,Y]=VD_SEQ[(n%9+i)%9];
+    out.push({lord:L,years:Y,start:t,end:t+Y*VD_YEARDAYS,partial:false});t+=Y*VD_YEARDAYS;}
+  return{nakIndex:n,lord,balance,mahadashas:out};}
+function antardashas(md){
+  const i0=VD_SEQ.findIndex(x=>x[0]===md.lord), full=VD_SEQ[i0][1];
+  const res=[];let t=md.start;
+  for(let i=0;i<9;i++){const [L,Y]=VD_SEQ[(i0+i)%9];
+    const dur=full*Y/VD_TOTAL*VD_YEARDAYS;res.push({lord:L,start:t,end:t+dur});t+=dur;}
+  return res;}
+function jdYear(jd){const d=jdToDate(jd);return `${d.m}/${d.y}`;}
+function renderDasha(sidMoonLon,birthJD){
+  const v=vimshottari(sidMoonLon,birthJD);
+  const nowJD=jdn(new Date().getFullYear(),new Date().getMonth()+1,new Date().getDate());
+  const cur=v.mahadashas.find(m=>nowJD>=m.start&&nowJD<m.end)||v.mahadashas[0];
+  const ads=antardashas(cur);
+  const curAd=ads.find(a=>nowJD>=a.start&&a.end>nowJD)||ads[0];
+  let h=`<div class="res" style="border-left-color:var(--jade)"><div class="k">${T("dasha","Your Life Chapters (Vimshottari Dasha)")}</div>`;
+  h+=`<p>Vedic astrology divides a life into long chapters, each governed by one of nine planets, running in a fixed order over 120 years. Which chapter you're born into — and how much of it is left — is set by exactly where the Moon sat at your birth. This is the main tool Vedic astrologers use for timing.</p>`;
+  h+=`<div class="v" style="margin-top:10px">Right now: <b>${cur.lord}</b>${cur.partial?" (the chapter you were born partway into)":""} — until ${jdYear(cur.end)}</div>`;
+  h+=`<p>This is your <b>${cur.lord}</b> chapter, which is about ${VD_MEAN[cur.lord]}. Within it you're in a <b>${curAd.lord}</b> sub-chapter until ${jdYear(curAd.end)}, colouring the main theme with ${VD_MEAN[curAd.lord]}.</p>`;
+  h+=`<div style="margin-top:14px;font-size:12.5px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;font-weight:700">The full sequence</div>`;
+  h+=`<table style="width:100%;border-collapse:collapse;margin-top:8px;font-size:13px">`;
+  for(const m of v.mahadashas){
+    const isNow=(m===cur);
+    h+=`<tr style="${isNow?'background:rgba(137,93,68,.09)':''}">
+      <td style="padding:6px 8px;border-bottom:1px solid var(--line);color:${isNow?'var(--gold)':'var(--paper)'};font-weight:${isNow?'700':'500'}">${m.lord}${isNow?' &nbsp;← now':''}</td>
+      <td style="padding:6px 8px;border-bottom:1px solid var(--line);color:var(--muted);text-align:right">${m.years.toFixed(1)} yrs</td>
+      <td style="padding:6px 8px;border-bottom:1px solid var(--line);color:var(--muted);text-align:right">${jdYear(m.start)} – ${jdYear(m.end)}</td></tr>`;}
+  h+=`</table>`;
+  h+=`<p style="font-size:12.5px;color:var(--muted);margin-top:12px"><i>Because the starting point depends on the Moon's exact position, this timeline is only as good as your birth time. The method follows the classical text <b>Brihat Parashara Hora Shastra</b> (ch. 46).</i></p>`;
+  h+=`</div>`;
+  return h;}
+function res(k,v,p,badge){return `<div class="res"><div class="k">${k}</div><div class="v">${v}${badge||""}</div>${p?`<p>${p}</p>`:""}</div>`;}
+function numBadge(n,kd){let b="";if([11,22,33].includes(n))b+=`<span class="badge b-master">Master</span>`;if(kd)b+=`<span class="badge b-karmic">Karmic debt ${kd}</span>`;return b;}
+
+/* ---------- UTC offset dropdown ---------- */
+/* ---------- historical timezone engine (IANA tzdb, built into the runtime) ---------- */
+let SELECTED_TZ=null;   // IANA zone name of the chosen city, e.g. "America/Toronto"
+/* offset in minutes east of UTC that `tz` was using at a given UTC instant */
+function tzOffsetMinutes(tz,utcDate){
+  const dtf=new Intl.DateTimeFormat("en-US",{timeZone:tz,hour12:false,
+    year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit"});
+  const p={};for(const x of dtf.formatToParts(utcDate))p[x.type]=x.value;
+  let h=parseInt(p.hour);if(h===24)h=0;
+  return (Date.UTC(+p.year,+p.month-1,+p.day,h,+p.minute,+p.second)-utcDate.getTime())/60000;}
+/* wall-clock local time -> the UTC offset actually in force then (hours). Iterates to convergence. */
+function tzOffsetForLocal(tz,y,m,d,hh,mi){
+  let guess=Date.UTC(y,m-1,d,hh,mi,0);
+  for(let i=0;i<3;i++){
+    const off=tzOffsetMinutes(tz,new Date(guess));
+    const corrected=Date.UTC(y,m-1,d,hh,mi,0)-off*60000;
+    if(corrected===guess)break;
+    guess=corrected;}
+  return tzOffsetMinutes(tz,new Date(guess))/60;}
+/* human label, e.g. "EDT" / "EST" */
+function tzAbbrev(tz,utcDate){
+  try{const p=new Intl.DateTimeFormat("en-US",{timeZone:tz,timeZoneName:"short"}).formatToParts(utcDate);
+    return p.find(x=>x.type==="timeZoneName").value;}catch(e){return "";}}
+(function(){const sel=$("utcoff");
+  const auto=document.createElement("option");auto.value="auto";auto.textContent="Auto — use city's real time zone";auto.selected=true;sel.appendChild(auto);
+  for(let o=-12;o<=14;o+=0.5){const opt=document.createElement("option");opt.value=o;
+  opt.textContent="UTC"+(o>=0?"+":"")+(Number.isInteger(o)?o:Math.trunc(o)+":30");sel.appendChild(opt);}})();
+
+/* ========== ZWDS FULL MODULE (Windada-parity) ========== */
+const BRIGHT={ziwei:"PMMWDWMMWPDW",tianji:"MFDWLPMFDWLP",taiyang:"FFWMWWWDDPFF",wuqu:"WMDLMPWMDLMP",
+tiantong:"WFLPPMFFWPPM",lianzhen:"PLMPLFPLMPLF",tianfu:"MMMDMDWMDWMD",taiyin:"MMXFFFFPLWWM",
+tanlang:"WMPLMFWMPLMF",jumen:"WFMMPPWFMMPW",tianxiang:"MMMFDDMDMFDP",tianliang:"MWMMMFMWFDMF",
+qisha:"WMMWMPWMMXMP",pojun:"MWDWWPMWDFWP"};
+const BLEVEL={M:["Temple Temple",100,"at full temple strength — gifts expressed cleanly and powerfully"],
+W:["Radiant Radiant",90,"radiant — strong, constructive, well-supported"],
+D:["Favorable Favorable",75,"favorable — helpful with modest effort"],
+L:["Gainful Gainful",65,"gainful — useful when deliberately worked"],
+P:["Neutral Neutral",50,"neutral — present but leaning on companion stars"],
+X:["Idle Idle",35,"idle — muted, background influence"],
+F:["Fallen Fallen",20,"fallen — expressed with friction; the shadow side needs managing"]};
+const MINOR_LUCKY={zuofu:"Zuo Fu Zuo Fu (Deputy I — loyal aid)",youbi:"You Bi You Bi (Deputy II — gracious aid)",
+wenchang:"Wen Chang Wen Chang (Intellect — scholarship, documents)",wenqu:"Wen Qu Wen Qu (Intelligence — eloquence, arts)",
+tiankui:"Tian Kui Tian Kui (Noble I — elder benefactors)",tianyue:"Tian Yue Tian Yue (Noble II — quiet patrons)",
+lucun:"Lu Cun Lu Cun (Abundance — stored wealth)"};
+const MINOR_SHA={qingyang:"Qing Yang Qing Yang (the Blade — impatience, cuts)",tuoluo:"Tuo Luo Tuo Luo (the Grindstone — delay, friction)",
+huoxing:"Huo Xing Huo Xing (Fiery — sudden flare-ups)",lingxing:"Ling Xing Ling Xing (Troublesome — slow-burn agitation)",
+dikong:"Di Kong Di Kong (Void — idealism, material slips)",dijie:"Di Jie Di Jie (Calamity — sudden loss, wake-up calls)"};
+const PALACE_DOMAIN=["your core self and destiny","peers, siblings and close allies","marriage and committed partnership",
+"children and creative offspring","money and your earning style","the body and its vulnerabilities",
+"the outer world — movement and how strangers receive you","networks, supporters and subordinates",
+"vocation and public standing","home, assets and foundation","inner life, blessing and mental habits","elders, mentors and origins"];
+const LIFE_MASTER=["Tan Lang Tan Lang","Ju Men Ju Men","Lu Cun Lu Cun","Wen Qu Wen Qu","Lian Zhen Lian Zhen","Wu Qu Wu Qu","Po Jun Po Jun","Wu Qu Wu Qu","Lian Zhen Lian Zhen","Wen Qu Wen Qu","Lu Cun Lu Cun","Ju Men Ju Men"];
+const BODY_MASTER=["Huo Xing Huo Xing","Tian Xiang Tian Xiang","Tian Liang Tian Liang","Tian Tong Tian Tong","Wen Chang Wen Chang","Tian Ji Tian Ji","Huo Xing Huo Xing","Tian Xiang Tian Xiang","Tian Liang Tian Liang","Tian Tong Tian Tong","Wen Chang Wen Chang","Tian Ji Tian Ji"];
+const LUCUN_POS=[2,3,5,6,5,6,8,9,11,0]; /* by stem */
+const KUI_POS=[1,0,11,11,1,0,1,6,3,3], YUE_POS=[7,8,9,9,7,8,7,2,5,5];
+const HUO_START=[2,3,1,9,2,3,1,9,2,3,1,9], LING_START=[10,10,3,10,10,10,3,10,10,10,3,10];
+
+function minorStars(stem,branch,lm,hour){
+  const lucun=LUCUN_POS[stem];
+  return{zuofu:norm(4+(lm-1),12),youbi:norm(10-(lm-1),12),wenchang:norm(10-hour,12),wenqu:norm(4+hour,12),
+    tiankui:KUI_POS[stem],tianyue:YUE_POS[stem],lucun,
+    qingyang:norm(lucun+1,12),tuoluo:norm(lucun-1,12),
+    huoxing:norm(HUO_START[branch]+hour,12),lingxing:norm(LING_START[branch]+hour,12),
+    dikong:norm(11-hour,12),dijie:norm(11+hour,12)};}
+function sfsz(p){return[p,norm(p+4,12),norm(p+8,12),norm(p+6,12)];}
+function comboIndex(p,minors){let lucky=0,sha=0;const zone=sfsz(p);
+  for(const[s,pos]of Object.entries(minors)){if(!zone.includes(pos))continue;
+    if(MINOR_LUCKY[s])lucky++;else sha++;}
+  return{lucky,sha,idx:(lucky+sha)?Math.round(lucky/(lucky+sha)*100):50};}
+function starDesc(star,palIdx,palaceName,bl){
+  const[zh,mean]=ZWDS_STARS[star];const essence=mean.split("—")[1].trim();
+  return`<b>${zh} ${mean.split("—")[0].trim()}</b> (${BLEVEL[bl][0]}): governing ${PALACE_DOMAIN[palIdx]}, ${BLEVEL[bl][2]}. Here its essence — ${essence} — becomes the ruling tone of this life domain.`;}
+
+function renderZWDS(y,m,d,hh,cp,jd,timeGiven){
+  const la=chineseLunar(y,m,d);const lm=parseInt($("lmonth").value)||la.month;const ld=parseInt($("lday").value)||la.day;
+  const male=$("gender").value==="male";
+  const zw=zwds(cp.stem,lm,ld,cp.hourBranch);
+  const minors=minorStars(cp.stem,cp.branch,lm,cp.hourBranch);
+  /* decade direction & xiao xian */
+  const fwd=((cp.stem%2===0)&&male)||((cp.stem%2===1)&&!male);
+  const decFor=p=>{const k=norm(fwd?p-zw.ming:zw.ming-p,12);return`${zw.bureau+10*k}–${zw.bureau+10*k+9}`;};
+  const xxStart=[10,7,4,1,10,7,4,1,10,7,4,1][cp.branch], xxDir=male?1:-1;
+  const xxAges=p=>{const out=[];for(let a=1;a<=96;a++)if(norm(xxStart+xxDir*(a-1),12)===p)out.push(a);return out.join(" ");};
+  /* headline lucky index (our scale) */
+  const lifeMaj=Object.entries(zw.pos).filter(([s,p])=>p===zw.ming).map(([s])=>s);
+  const brightSrc=lifeMaj.length?lifeMaj:Object.entries(zw.pos).filter(([s,p])=>p===norm(zw.ming+6,12)).map(([s])=>s);
+  const avgB=brightSrc.length?brightSrc.reduce((a,s)=>a+BLEVEL[BRIGHT[s][zw.ming]][1],0)/brightSrc.length:50;
+  const lifeCombo=comboIndex(zw.ming,minors);
+  const lucky=Math.round(avgB*0.5+lifeCombo.idx*0.5);
+  /* palace stems */
+  const tigerStart=[2,4,6,8,0][cp.stem%5];const palStem=p=>norm(tigerStart+norm(p-2,12),10);
+  /* flowing year */
+  const now=new Date();const nowY=(now.getMonth()<1||(now.getMonth()===1&&now.getDate()<4))?now.getFullYear()-1:now.getFullYear();
+  const anStem=norm(nowY-4,10),anBranch=norm(nowY-4,12);const anSihua=SIHUA[anStem];
+  const anName=s=>(ZWDS_STARS[s]||[s])[0];
+
+  const lstats=luckyIndexStats(lucky,3000);
+  let h=res(T("lucky","Lucky Index"),lucky+" / 100",
+    `Our scale: Life-Palace star brightness (${Math.round(avgB)}%) blended with the auspicious-vs-inauspicious balance of its Three Directions &amp; Four Points (${lifeCombo.lucky} lucky vs ${lifeCombo.sha} harmful → ${lifeCombo.idx}%). Different sites weight differently — the structure beneath is what matters.<br><br><b>What that number actually means:</b> we ran this same formula across ${lstats.n.toLocaleString()} randomly generated charts. The average score came out to <b>${lstats.mean}</b>, and the top quarter of charts scored <b>${lstats.topQuartile}+</b>. Your score of <b>${lucky}</b> is higher than <b>${lstats.percentile}%</b> of that simulated range — a real computed percentile, not a guess.`);
+  h+=confNote("High","The star and palace placements are validated against a professional reference chart. The numeric Lucky Index is this engine's own scoring convention, though — a useful structure, not a universal standard other software would necessarily reproduce.");
+  if(!timeGiven)h+=`<div class="res" style="border-left-color:var(--cinnabar)"><div class="k">⚠ Birth time assumed</div><p>You didn't enter a birth time, so this chart assumes <b>noon</b>. Zi Wei Dou Shu depends heavily on the birth hour — the Life Palace, Body Palace and hour pillar can all shift. Add your birth time in step 2 for an accurate imperial chart.</p></div>`;
+  h+=res(T("lunardate","Lunar Date Used"),`Month ${lm}, Day ${ld}${($("lmonth").value||$("lday").value)?" (manual override)":" (computed — override in leap-month years)"}`,
+    `Pillars: Year ${STEMS[cp.stem].split(" ")[0]} ${BRANCH_ZH[cp.branch]} · Hour ${BRANCH_ZH[cp.hourBranch]} hour · ${male?"Male":"Female"}, ${cp.stem%2?"Yin":"Yang"}-year → decades run ${fwd?"forward":"backward"} from age ${zw.bureau}.`);
+  h+=res(T("lifebodymasters","Life &amp; Body Masters"),`${LIFE_MASTER[zw.ming]} · ${BODY_MASTER[cp.branch]}`,
+    "The Life Master (by Life-Palace branch) is the star steering your innate disposition; the Body Master (by year branch) steers what life develops in you. Old practice invoked them as personal guardian stars.");
+  h+=res(T("lifepalace","Life Palace"),`${STEMS[palStem(zw.ming)].split(" ")[0]} ${BRANCH_ZH[zw.ming]}${zw.ming===zw.shen?" — Life &amp; Body United Life & Body united":""}`,
+    (zw.ming===zw.shen?"<b>Undivided chart:</b> one palace carries double weight — no second-act personality; you intensify rather than transform. ":"Body Palace at "+BRANCH_ZH[zw.shen]+". ")+
+    `Element Bureau: <b>${zw.elem} ${zw.bureau}  Bureau</b> — sets the decade clock and the chart's elemental engine.`);
+  /* twelve palaces — a compact at-a-glance strength grid for all twelve, then full prose
+     only for the ones actually worth reading closely (unusual combinations), per the
+     principle that repeating the same five-part structure twelve times buries the signal. */
+  function strengthLabel(idx){
+    if(idx>=75)return["Strong","var(--jade)"];
+    if(idx>=55)return["Favorable","var(--jade)"];
+    if(idx>=45)return["Balanced","var(--gold)"];
+    if(idx>=25)return["Challenging","var(--cinnabar)"];
+    return["Difficult","var(--cinnabar)"];
+  }
+  let glanceRows="",notableHtml="";
+  for(let k=0;k<12;k++){const p=norm(zw.ming-k,12);
+    const majors=Object.entries(zw.pos).filter(([s,pp])=>pp===p).map(([s])=>s);
+    const minL=Object.entries(minors).filter(([s,pp])=>pp===p).map(([s])=>MINOR_LUCKY[s]||MINOR_SHA[s]);
+    const cb=comboIndex(p,minors);
+    const [label,color]=strengthLabel(cb.idx);
+    const majNames=majors.length?majors.map(s=>ZWDS_STARS[s][0]).join(", "):"—";
+    glanceRows+=`<tr><td style="padding:6px 8px;border-bottom:1px solid var(--line)">${PALACE_NAMES[k]}${p===zw.ming?" ★":""}</td>
+      <td style="padding:6px 8px;border-bottom:1px solid var(--line);color:var(--muted)">${majNames}</td>
+      <td style="padding:6px 8px;border-bottom:1px solid var(--line);color:${color};font-weight:700">${label}</td>
+      <td style="padding:6px 8px;border-bottom:1px solid var(--line);color:var(--muted)">${cb.idx}%</td></tr>`;
+
+    const sihuaHere=zw.sihua.map((s,i)=>ZWDS_STARS[s]&&zw.pos[s]===p?["Transformation of Wealth (Lu)","Transformation of Power (Quan)","Transformation of Reputation (Ke)","Transformation of Obstruction (Ji) — the flagged lesson"][i]:null).filter(Boolean);
+    const notable=sihuaHere.length>0||cb.idx>=75||cb.idx<=25||majors.length>=2||p===zw.ming||p===zw.shen;
+    if(notable){
+      const majTxt=majors.length?majors.map(s=>starDesc(s,k,PALACE_NAMES[k],BRIGHT[s][p])).join("<br>"):"No major star — <b>borrowed light</b>: this palace reads its character from its opposite seat; flexible, context-shaped.";
+      notableHtml+=res(T("palace",`${PALACE_NAMES[k]}${p===zw.ming?" (Life Palace)":p===zw.shen?" (Body Palace)":""}`),`${STEMS[palStem(p)].split(" ")[0]} ${BRANCH_ZH[p]} palace — ${label}`,
+        majTxt+
+        (sihuaHere.length?`<br><b>Birth transformation lands here:</b> ${sihuaHere.join(", ")} — this is where that current runs for life.`:"")+
+        (minL.length?`<br><b>Minor stars:</b> ${minL.join("; ")}.`:"")+
+        `<br><b>${T('decadeluck','Decade luck Decade Luck')}:</b> ages ${decFor(p)} · <b>${T('annualluck','Annual luck Annual Luck')}:</b> ages ${xxAges(p)} · <b>${T('combo','Combination')}:</b> ${cb.lucky} lucky / ${cb.sha} harmful in its Three Directions → ${cb.idx}%.`);
+    }
+  }
+  const palacesHtml=`<p style="font-size:12.5px;color:var(--muted);margin-bottom:8px">All twelve at a glance, then full detail only for the palaces with something unusual going on — a birth transformation landing there, an especially strong or weak reading, or more than one major star sharing the seat.</p>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:16px">
+      <tr style="font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)"><td style="padding:4px 8px">Palace</td><td style="padding:4px 8px">Major star(s)</td><td style="padding:4px 8px">Strength</td><td style="padding:4px 8px"></td></tr>
+      ${glanceRows}
+    </table>
+    ${notableHtml}`;
+  h+=`<details class="subacc" open><summary>All Twelve Palaces <span class="chev">︾</span></summary><div class="subacc-body">${palacesHtml}</div></details>`;
+  h+=res(T("sihua","Four Birth Transformations"),
+    `Lu ${anName(zw.sihua[0])} · Quan ${anName(zw.sihua[1])} · Ke ${anName(zw.sihua[2])} · Ji ${anName(zw.sihua[3])}`,
+    "Your birth-year stem charges four stars for life: Lu (flow of benefit), Quan (authority), Ke (name and credibility), Ji (the obstruction — where the lesson repeats). Their palace positions above show where each current runs.");
+  h+=res(T("flowingyear",`Flowing Year — ${nowY} ${STEMS[anStem].split(" ")[0]} ${BRANCH_ZH[anBranch]}`),
+    `Annual Life Palace: your natal <b>${zw.palaces[anBranch]}</b>`,
+    `This year the ${BRANCH_ZH[anBranch]} branch activates that palace as the year's command post — its themes dominate the year. Annual transformations: Lu ${anName(anSihua[0])}, Quan ${anName(anSihua[1])}, Ke ${anName(anSihua[2])}, Ji ${anName(anSihua[3])} — find those stars above; their palaces are where the year gives and where it tests. (Monthly flow: count the lunar months clockwise from the annual palace.)`);
+  h+=`<div class="res"><div class="k">School Note</div><p>Brightness table and Kui/Yue placements follow the common the standard canon schema; some sites use variant schools, so a star may differ one level or seat from another calculator. Miscellaneous stars beyond the twelve principal minors (Hua Gai, Tian Xu, etc.) are not placed — they season the dish but do not cook it.</p></div>`;
+  $("zwds-out").innerHTML=h;}
+
+/* ========== NEW SYSTEMS: Celtic Tree · Aztec ========== */
+const CELTIC=[ /* [monthStart,dayStart,monthEnd,dayEnd,name,ogham,meaning] — Beth-Luis-Nion, Graves 1948 */
+[12,24,1,20,"Birch","Beth","The pioneer — new beginnings, purification, courage to go first"],
+[1,21,2,17,"Rowan","Luis","The protector — personal power, insight, guarding against illusion"],
+[2,18,3,17,"Ash","Nion","The world-tree — connection, prophetic dreams, the vertical link between worlds"],
+[3,18,4,14,"Alder","Fearn","The warrior-prophet — endurance, balancing emotion, guardian spirit"],
+[4,15,5,12,"Willow","Saille","The moon-tree — intuition, healing, the pull of feeling and cycle"],
+[5,13,6,9,"Hawthorn","Uath","The threshold — otherworld contact, transformation, protected challenge"],
+[6,10,7,7,"Oak","Duir","The king — strength, endurance, leadership that others gather around"],
+[7,8,8,4,"Holly","Tinne","The champion — resilience through hardship, mastery, sword-like clarity"],
+[8,5,9,1,"Hazel","Coll","The sage — wisdom, the salmon of knowledge, hidden insight surfacing"],
+[9,2,9,29,"Vine","Muin","The harvester — abundance, indulgence, celebration of what's been grown"],
+[9,30,10,27,"Ivy","Gort","The persister — resourcefulness, quiet tenacity, growth that holds fast"],
+[10,28,11,24,"Reed","Ngetal","The truth-seeker — direct purpose, hidden knowledge, unwavering aim"],
+[11,25,12,23,"Elder","Ruis","The ending & beginning — closure, regeneration, the wheel completing"]];
+function celticSign(m,d){for(const t of CELTIC){const[m1,d1,m2,d2]=t;
+  if(m1>m2){if((m===m1&&d>=d1)||(m===m2&&d<=d2)||(m>m1)||(m<m2))return t;}
+  else{if((m===m1&&d>=d1)||(m===m2&&d<=d2)||(m>m1&&m<m2))return t;}}
+  return CELTIC[0];}
+
+const AZTEC_DAYS=[["Cipactli","Crocodile — primal creation, the world's first day, wise beginnings"],
+["Ehecatl","Wind — breath, movement, divine communication, restless change"],
+["Calli","House — shelter, introspection, the guarded inner sanctuary"],
+["Cuetzpalin","Lizard — agility, adaptability, quiet creative fertility"],
+["Coatl","Serpent — duality, transformation, power held close"],
+["Miquiztli","Death — transition, ancestral memory, the necessary ending"],
+["Mazatl","Deer — grace, gentleness, vigilant timidity"],
+["Tochtli","Rabbit — abundance, fertility, playful fortune"],
+["Atl","Water — emotion, purification, the cleansing current"],
+["Itzcuintli","Dog — loyalty, guidance, the psychopomp who leads the way"],
+["Ozomahtli","Monkey — cleverness, artistry, joyful mischief"],
+["Malinalli","Grass/Twisted — tenacity, entangling persistence, resilience under pressure"],
+["Acatl","Reed — authority, uprightness, the standing pillar of law"],
+["Ocelotl","Jaguar — night-power, magic, fierce guardianship"],
+["Cuauhtli","Eagle — vision from height, ambition, solar courage"],
+["Cozcacuauhtli","Vulture — wisdom through age, forgiveness, the long view"],
+["Ollin","Movement — the earthquake, change, dynamic transformation"],
+["Tecpatl","Flint — the blade of truth, sacrifice, sharp decisiveness"],
+["Quiahuitl","Rain — nourishment and tempest, gifts that arrive as storms"],
+["Xochitl","Flower — beauty, art, the flowering of the soul"]];
+function aztecTonalli(jd){
+  const days=Math.floor(jd-584283); /* shared GMT correlation with Tzolk'in; Aztec day-sign order differs, per scholarly note below */
+  const num=norm(days+3,13)+1;const sign=AZTEC_DAYS[norm(days+19,20)];
+  return{num,sign};}
+
+/* ---------- TOOLTIP DICTIONARY ---------- */
+const TIP={
+lifepath:"The reduced sum of your full birth date — the single road your life walks.",
+birthday:"Your day-of-month, reduced — a secondary talent layered onto the Life Path.",
+expr:"Every letter of your full birth name, summed — what you're built to accomplish.",
+soul:"Only the vowels of your name — what your heart privately wants, regardless of image.",
+pers:"Only the consonants — the face the world reads before it knows you.",
+maturity:"Life Path + Expression, reduced — the direction your later years bend toward.",
+karmiclesson:"Numbers absent from your name's letters — qualities life assigns as recurring homework.",
+cycles:"Your Personal Year/Month/Day — rolling numerological weather, recalculated constantly.",
+sunsign:"The zodiac sign the Sun occupied at your birth moment — core identity and vital drive.",
+moonsign:"Where the Moon sat — your emotional instincts and private inner weather.",
+risingsign:"The zodiac sign rising on the eastern horizon at your birth — your outward manner, the 'mask'.",
+yearpillar:"Your birth year's Stem + Branch in the Ba Zi system — the animal and element governing your generation.",
+houranimal:"The animal ruling your two-hour birth window — your 'secret self', closest to the surface in private.",
+sanhe:"Harmony Trine — your zodiac's harmony trine: the two animals classically smoothest for you to bond with.",
+sidsun:"Your Sun's position on the sidereal (star-fixed) zodiac used in Vedic astrology — roughly 24° behind the Western tropical Sun.",
+rashi:"Your Moon sign in Vedic astrology — the operative sign for most Jyotish predictions, the mind's home base.",
+nakshatra:"One of 27 lunar mansions the Moon occupied at birth — the finest-grained personality layer in Jyotish.",
+lifepalace:"Life Palace — the seat of your innate nature in Zi Wei Dou Shu; everything else in the chart is read relative to it.",
+bodypalace:"Body Palace — the self life develops after the mid-30s; shares a seat with the Life Palace only in Zi/Wu-hour births.",
+bureau:"Five-Element Bureau — your Five-Element Bureau number, which sets the pace of your decade cycles.",
+lifemaster:"Life Master — a guardian star assigned by your Life Palace's branch, said to steer your innate temperament.",
+bodymaster:"Body Master — a guardian star assigned by your birth-year branch, steering what life develops in you.",
+palace:"One of the twelve houses of life the chart divides into — this one's domain is named above.",
+decadeluck:"Decade Luck — the ten-year period this palace governs as your chart's 'current chapter'.",
+annualluck:"Annual Luck — specific ages (repeating every 12 years) when this palace becomes the year's focus.",
+combo:"A rough ratio of helpful vs. harmful minor stars in this palace's Three Directions — one lens on 'how easy' this life area runs.",
+sihua:"Four Transformations — four stars charged by your birth-year stem with Wealth-flow, Power, Reputation, or Obstruction energy for life.",
+flowingyear:"Flowing Year — which natal palace this calendar year's energy is currently routed through.",
+tzolkinday:"Your position in the 260-day Mayan sacred count — a day-sign plus a numeric tone, repeating every 260 days.",
+hdprofile:"Two line-numbers (conscious/unconscious) describing your basic life-role archetype in Human Design.",
+hdsungate:"The I-Ching hexagram ('gate') the Sun occupied at birth — your core radiated theme in Human Design.",
+celtictree:"Which of 13 sacred trees governs your birth window in the (modern, 1948) Ogham lunar calendar.",
+tonalli:"Your day-sign and number in the Aztec 260-day Tonalpohualli — the sacred birth-energy fused into you at birth.",
+};
+Object.assign(TIP,{"__SYS_Numerology__":"The study of numbers derived from your name and birth date, the oldest layer here traces to Pythagoras (~6th c. BCE).","__SYS_Western Astrology__":"Tropical zodiac astrology: planetary positions at birth mapped onto the seasons, Hellenistic in its classical form.","__SYS_Chinese Astrology__":"Ba Zi, the Four Pillars of Destiny: your birth year, month, day and hour as Stems and Branches.","__SYS_Vedic Astrology__":"Jyotish, the sidereal (star-fixed) astrology of India, oldest continuously practiced astrological system.","__SYS_Zi Wei Dou Shu__":"Purple Star Astrology, the imperial Chinese system once reserved for reading emperors' fates.","__SYS_Mayan Astrology__":"The Tzolk'in, a 260-day sacred count of 13 tones by 20 day-signs, still used ceremonially in parts of Guatemala.","__SYS_Human Design__":"A 1987 synthesis of I-Ching, astrology, Kabbalah and chakras, modern in origin, not an ancient tradition.","__SYS_Celtic Tree Astrology__":"A 13-tree lunar calendar built from the Ogham alphabet, devised by poet Robert Graves in 1948, evocative but not historically Druidic.","__SYS_Aztec Astrology__":"The Tonalpohualli, a 260-day Mesoamerican sacred calendar paralleling the Maya Tzolk'in, with different day-sign names and a debated correlation to our calendar.","__SYS_Life Summary__":"A plain-English overview of everything below — who you are, where you are now, and where things seem headed, with no jargon."});
+Object.assign(TIP,{"lucky": "Our composite score blending star brightness and the auspicious/harmful star balance in the Life Palace.", "lunardate": "The lunisolar month/day your Zi Wei chart is actually built from, verify this if born in a leap-lunar-month year.", "lifebodymasters": "Two guardian stars, one for innate temperament, one for developed character."});
+function T(key,label){return TIP[key]?`<span class="tip" data-tip="${key}">${label}</span>`:label;}
+
+/* ---------- render: Celtic, Aztec ---------- */
+function renderCeltic(m,d){
+  const t=celticSign(m,d);
+  let h=res(T("celtictree","Ruling Tree"),`${t[4]} <small>${t[5]}</small>`,
+    `<b>${t[4]} (${t[5]})</b>: ${t[6]}. Governs birth windows from ${t[0]}/${t[1]} to ${t[2]}/${t[3]} in the 13-tree Ogham lunar calendar.`+
+    `<br><i>Honest note: this 13-month system was assembled by poet Robert Graves in his 1948 book "The White Goddess." The Ogham alphabet is genuinely ancient (Iron Age Ireland), but its use as a zodiac calendar is a 20th-century interpretive layer, not an unbroken Druidic tradition — treat it as a poetic lens, not an archaeological fact.</i>`);
+  h+=confNote("Low-to-moderate","The date math is exact, but the calendar itself is a 20th-century literary invention layered onto a genuinely ancient alphabet — not an unbroken historical zodiac.");
+  $("celtic-out").innerHTML=h;}
+
+function renderAztec(jd){
+  const az=aztecTonalli(jd);
+  let h=res(T("tonalli","Tonalli — Day Sign"),`${az.num} ${az.sign[0]}`,
+    `<b>${az.sign[0]}:</b> ${az.sign[1]}. Number ${az.num} of 13 in its trecena (13-day week). Together they form your Tonalpohualli birth-energy, repeating every 260 days — Mesoamerica's other great sacred calendar alongside the Maya Tzolk'in.`+
+    `<br><i>Honest note: scholars use several competing correlation constants to align the Aztec calendar with ours (e.g. the GMT constant 584283 used here vs. the Alfonso Caso correlation) — a small number of practitioners would place you one or two day-signs earlier or later. Treat the sign as indicative.</i>`);
+  h+=confNote("Moderate","The day-count arithmetic is exact. Like the Maya count, the correlation to our calendar is genuinely debated among scholars.");
+  $("aztec-out").innerHTML=h;}
+
+
+
+/* ---------- landing → app ---------- */
+$("beginBtn").addEventListener("click",()=>{
+  $("landing").style.display="none";
+  $("app").style.display="block";
+  $("app").scrollIntoView({behavior:"smooth"});
+  setTimeout(()=>$("firstname").focus(),300);
+});
+
+/* ---------- explainer page content for each tradition ---------- */
+const EXPLAINERS={
+num:{title:"Numerology",em:"the meaning of numbers",
+  origin:["Roots: Ancient (Pythagorean, ~6th c. BCE ideas) · modern form 20th c.","Reads from: Your name &amp; birth date"],
+  lead:"The idea that the numbers hidden in your name and birthday carry meaning about who you are.",
+  body:["Numerology turns letters into numbers (A=1, B=2, and so on) and adds up the digits of your birth date, then reduces everything to single numbers 1–9 (plus a few special \"master\" numbers). Each number carries a personality — 1 is the leader, 7 the thinker, and so on.","The modern version practised today is often called \"Pythagorean,\" though the real Pythagoreans didn't actually do name-numerology — that's a newer invention wearing an ancient name. It's best enjoyed as a mirror for reflection rather than literal fact."],
+  count:"6 core numbers + a birth-date grid",
+  types:[
+    ["Life Path","from your birth date","The single most important number — the overall theme and direction of your life. Think of it as the road you're walking."],
+    ["Expression / Destiny","from your full name","What you're naturally built to do — your talents and the goals you're wired to pursue."],
+    ["Soul Urge","from the vowels in your name","What you secretly want deep down — your inner motivation, regardless of how you appear."],
+    ["Personality","from the consonants in your name","The first impression others get — the version of you the world sees before they know you."],
+    ["Birthday Number","from the day you were born","A specific talent or gift layered on top of your Life Path."],
+    ["Personal Year / Month / Day","from today's date + your birthday","Your current \"weather\" — repeating cycles that tell you what each year, month, and day is best used for."],
+    ["The Birth Chart Grid","from your birth-date digits","A separate approach (David Phillips' method): your birth numbers placed on a 3×3 grid, showing which strengths cluster and which qualities you're here to grow."]],
+  note:"Draws on two guides — Shirley Blackwell Lawrence for the name numbers and David Phillips for the birth-date grid — with the honest caveat from historian Andrew Gregory that the ancient Pythagoreans did not practise this."},
+
+west:{title:"Western Astrology",em:"the sky at your birth",
+  origin:["Roots: Babylonian &amp; Hellenistic Greek (~2,000+ years old)","Reads from: Your birth date, time &amp; place"],
+  lead:"The familiar zodiac — reading who you are from where the Sun, Moon and planets sat when you were born.",
+  body:["This is the system behind \"What's your sign?\" It maps the positions of the Sun, Moon, and the horizon at your exact birth moment onto twelve zodiac signs, each with its own personality.","Your birth time and place matter here: without them you still get your Sun sign, but the Moon sign and especially the rising sign need the clock and the location to pin down."],
+  count:"3 main pieces (the \"big three\")",
+  types:[
+    ["Sun Sign","needs: date","Your core identity and drive — the famous \"star sign\" everyone knows. It's who you fundamentally are."],
+    ["Moon Sign","needs: date + time","Your emotional inner world — how you feel, comfort yourself, and react privately."],
+    ["Rising Sign (Ascendant)","needs: date + time + place","The mask you wear and the first impression you give — how you come across when people first meet you."]],
+  note:"The full tradition also reads all the planets and twelve \"houses,\" but the big three above are the foundation."},
+
+cn:{title:"Chinese Astrology",em:"the Four Pillars",
+  origin:["Roots: Ancient China (Han dynasty and earlier)","Reads from: Your birth year, month, day &amp; hour"],
+  lead:"The system of the twelve animal signs and five elements — best known for \"the year of the…\"",
+  body:["Most people know the twelve-year animal cycle (Rat, Ox, Tiger…). The deeper system, called Ba Zi or \"Four Pillars,\" pairs each animal with one of five elements (Wood, Fire, Earth, Metal, Water) and looks not just at your birth year but your month, day, and even two-hour birth window.","Each pillar describes a different layer of you, and the balance of elements across them is read for personality and fortune."],
+  count:"12 animals × 5 elements",
+  types:[
+    ["Year Animal + Element","e.g. Wood Pig","Your best-known sign — the broad personality you show the world and share with your generation."],
+    ["Hour Animal","your two-hour birth window","Your \"secret self\" — the private temperament closest to the surface when you're not performing."],
+    ["The Five Elements","Wood · Fire · Earth · Metal · Water","Each colours its animal differently. A Wood Pig and a Fire Pig share the animal but express it in very different ways."],
+    ["Harmony Trine","your best-matched animals","The animals traditionally most compatible with yours for friendship and partnership."]],
+  note:"The year boundary follows the solar calendar (around Feb 4), not New Year's Day — so early-February births can surprise people."},
+
+ved:{title:"Vedic Astrology",em:"Jyotish, the science of light",
+  origin:["Roots: Ancient India (thousands of years old)","Reads from: Your birth date, time &amp; place"],
+  lead:"India's astrology — similar to Western but reading against the real, star-fixed sky.",
+  body:["Vedic astrology (Jyotish) looks similar to Western astrology but uses a slightly different zodiac aligned to the actual stars, which shifts most people's signs by roughly one position. It's the oldest continuously practised astrology in the world.","Its signature feature is the nakshatra — a much finer 27-part division of the sky based on the Moon, which many practitioners read before anything else."],
+  count:"3 key placements",
+  types:[
+    ["Sidereal Sun","your \"real-sky\" Sun sign","Your soul's purpose and authority — often a different sign than your Western Sun, and that's expected."],
+    ["Moon Sign (Rashi)","the most-used sign in Vedic","Considered the most important placement — your mind, emotions, and instincts. Predictions often start here."],
+    ["Nakshatra","1 of 27 lunar mansions","The finest layer — a detailed personality portrait based on exactly where the Moon sat. Many readers consider it the heart of the chart."]],
+  note:"Because it's tied to the fixed stars, a Vedic Sun sign often differs from the Western one by about 24 degrees — roughly one sign."},
+
+zwds:{title:"Zi Wei Dou Shu",em:"Purple Star Astrology",
+  origin:["Roots: Imperial China (~Song dynasty, ~1,000 years old)","Reads from: Your birth year, lunar month, day &amp; hour"],
+  lead:"The \"emperor's astrology\" — once reserved for reading the fates of Chinese royalty.",
+  body:["This is the most detailed and technical system here. It builds a chart of twelve \"palaces\" — one each for your self, wealth, career, marriage, health, and so on — and places a set of named stars into them. Where each star lands colours that area of your life.","It was historically prestigious, used at the imperial court, and is prized for its specificity. It needs your birth hour, and works from the Chinese lunar calendar."],
+  count:"12 life palaces + 14 major stars",
+  types:[
+    ["The 12 Palaces","Self, Wealth, Career, Marriage, Health…","Twelve areas of life. Each palace is read for how that part of your life tends to go."],
+    ["The 14 Major Stars","e.g. the Emperor, the General, Desire","The main characters. Which palace each falls into — and how bright it is there — shapes the reading."],
+    ["The Four Transformations","Wealth · Power · Reputation · Obstruction","Four energies your birth year attaches to certain stars, marking where fortune flows and where the lessons are."],
+    ["Decade &amp; Yearly Luck","10-year and 1-year cycles","The chart also maps out which life-areas are activated in each decade and each year of your life."]],
+  note:"The most complex system here — needs an accurate birth time, and uses the lunar calendar, which can shift by a month in leap-month years."},
+
+maya:{title:"Mayan Astrology",em:"the Tzolk'in sacred count",
+  origin:["Roots: Ancient Mesoamerica (Maya civilization)","Reads from: Your birth date"],
+  lead:"A 260-day sacred calendar still used ceremonially in parts of Guatemala today.",
+  body:["The Maya kept a 260-day sacred round called the Tzolk'in, made of 20 day-signs cycling against 13 numbers. Your \"galactic signature\" is simply which of these 260 combinations you were born on.","Each of the 20 day-signs is like a totem with its own character, and each of the 13 numbers (called tones) adds a flavour of energy on top."],
+  count:"20 day-signs × 13 tones",
+  types:[
+    ["Day-Sign","1 of 20","Your core nature in this system — a symbol like Crocodile, Wind, or Sun, each carrying its own meaning."],
+    ["Tone (Number)","1 of 13","The energy or 'volume' on your day-sign — from 1 (quiet, unifying) up to 13 (transcendent, far-reaching)."]],
+  note:"Aligning ancient Maya dates to our calendar uses a standard conversion; a couple of variant methods exist, so treat the sign as indicative."},
+
+aztec:{title:"Aztec Astrology",em:"the Tonalpohualli",
+  origin:["Roots: Ancient Mesoamerica (Aztec/Nahua)","Reads from: Your birth date"],
+  lead:"The Aztec cousin of the Mayan calendar — the same 260-day rhythm, different names.",
+  body:["The Aztecs kept their own 260-day sacred calendar, the Tonalpohualli, running in parallel to the Maya one. It shares the same structure — 20 day-signs and 13 numbers — but uses Nahuatl names and its own symbolism.","Your birth day-sign was believed to shape your destiny and character from the moment you were born."],
+  count:"20 day-signs × 13 numbers",
+  types:[
+    ["Day-Sign (Tonalli)","1 of 20","Your birth-energy symbol — like Crocodile, Wind, Flower, or Jaguar — carrying a distinct personality."],
+    ["Number","1 of 13","The strength and flavour riding along with your day-sign."]],
+  note:"Scholars debate exactly how to line the Aztec calendar up with ours, so a small number of people may land one sign either side."},
+
+celtic:{title:"Celtic Tree Astrology",em:"the Ogham tree calendar",
+  origin:["Roots: Modern (devised 1948) from older Celtic letters","Reads from: Your birth date"],
+  lead:"A 13-tree calendar linking your birth month to a sacred tree.",
+  body:["This system assigns one of thirteen native trees to each stretch of the year, based on the old Irish Ogham alphabet. Your birth date places you under a ruling tree — Birch, Oak, Willow, and so on — each with a personality drawn from its folklore.","It's worth knowing this is a modern creation: the poet Robert Graves assembled it in 1948. The Ogham letters are genuinely ancient, but their use as a birth calendar is a 20th-century idea — lovely and evocative, but not an unbroken Druid tradition."],
+  count:"13 trees",
+  types:[
+    ["Your Ruling Tree","1 of 13","The tree governing your birth window — like Rowan, Hawthorn, or Elder — lending you its symbolic qualities."]],
+  note:"Charming and poetic, but modern in origin (1948) rather than an authentic ancient Druidic system."},
+
+hd:{title:"Human Design",em:"a modern synthesis",
+  origin:["Roots: Modern (created 1987)","Reads from: Your birth date, time &amp; place"],
+  lead:"A recent blend of astrology, the I-Ching, and chakra ideas into a single \"body map.\"",
+  body:["Human Design is the newest system here, created in 1987. It combines several older traditions into one chart that's meant to describe how you're designed to make decisions and interact with the world.","This engine calculates a simplified slice of it — your \"profile\" (a two-part life-role) and your Sun \"gates.\" The full system also assigns a Type and an inner decision-making \"Authority,\" which need a complete chart."],
+  count:"2 pieces here (of a larger system)",
+  types:[
+    ["Profile","two numbers, e.g. 1/3","Your basic life-role — a pairing of two \"lines\" describing how you learn and how you engage with others."],
+    ["Sun Gates","from the I-Ching's 64 hexagrams","The core themes you radiate, drawn from where the Sun sat, mapped onto the 64 I-Ching hexagrams."],
+    ["Type &amp; Authority","(needs a full chart)","The full system sorts everyone into one of four Types with a personal decision-making style — beyond this simplified version."]],
+  note:"A modern (1987) synthesis, not an ancient tradition — and this engine computes only a simplified portion of it."}
+};
+
+/* ---------- show/hide explainer ---------- */
+(function(){
+  const landing=$("landing"),explainer=$("explainer"),body=$("explainBody");
+  function openExplainer(key){
+    const e=EXPLAINERS[key];if(!e)return;
+    let h=`<div class="explain-hero"><div class="explain-eyebrow">What is it?</div>
+      <h2>${e.title} — <em>${e.em}</em></h2>
+      <div class="explain-origin">${e.origin.map(o=>`<span>${o}</span>`).join("")}</div></div>
+      <p class="explain-lead">${e.lead}</p>
+      <div class="explain-body">${e.body.map(p=>`<p>${p}</p>`).join("")}</div>
+      <div class="explain-count">${e.count}</div>
+      <div class="explain-types">${e.types.map(t=>`<div class="etype"><h4>${t[0]}<span class="sub">${t[1]}</span></h4><p>${t[2]}</p></div>`).join("")}</div>
+      <div class="explain-note">${e.note}</div>`;
+    body.innerHTML=h;
+    landing.style.display="none";explainer.style.display="block";
+    window.scrollTo({top:0,behavior:"smooth"});
+  }
+  function backToLanding(){
+    explainer.style.display="none";landing.style.display="block";
+    window.scrollTo({top:0,behavior:"smooth"});
+  }
+  document.querySelectorAll(".sys-card").forEach(c=>{
+    c.addEventListener("click",()=>openExplainer(c.getAttribute("data-sys")));
+  });
+  $("explainBack").addEventListener("click",backToLanding);
+  $("explainBack2").addEventListener("click",backToLanding);
+  $("explainBegin").addEventListener("click",()=>{
+    explainer.style.display="none";
+    $("landing").style.display="none";
+    $("app").style.display="block";
+    $("app").scrollIntoView({behavior:"smooth"});
+    setTimeout(()=>$("firstname").focus(),300);
+  });
+})();
+
+/* ---------- city autocomplete ---------- */
+(function(){
+  const input=$("citysearch"),box=$("cityResults"),chosen=$("cityChosen");
+  let hi=-1,current=[];
+  function render(list){
+    current=list;hi=-1;
+    if(!list.length){box.classList.remove("show");box.innerHTML="";return;}
+    box.innerHTML=list.map((c,i)=>`<button type="button" data-i="${i}">${c[0]} <span class="muted">${c[1]} · UTC${c[4]>=0?"+":""}${c[4]}</span></button>`).join("");
+    box.classList.add("show");
+  }
+  function choose(c){
+    input.value=c[0]+", "+c[1];
+    $("lat").value=c[2];$("lon").value=c[3];
+    SELECTED_TZ=c[5]||null;
+    const sel=$("utcoff");[...sel.options].forEach(o=>{o.selected=(o.value==="auto");});
+    chosen.textContent=`✓ ${c[0]} — coordinates ${c[2]}, ${c[3]} · time zone ${c[5]} (daylight saving handled automatically)`;
+    box.classList.remove("show");
+  }
+  input.addEventListener("input",()=>{
+    const q=input.value.trim().toLowerCase();chosen.textContent="";
+    if(q.length<2){render([]);return;}
+    const matches=CITIES.filter(c=>c[0].toLowerCase().includes(q)||c[1].toLowerCase().includes(q)).slice(0,8);
+    render(matches);
+  });
+  input.addEventListener("keydown",e=>{
+    if(!box.classList.contains("show"))return;
+    if(e.key==="ArrowDown"){e.preventDefault();hi=Math.min(hi+1,current.length-1);}
+    else if(e.key==="ArrowUp"){e.preventDefault();hi=Math.max(hi-1,0);}
+    else if(e.key==="Enter"){e.preventDefault();if(hi>=0&&current[hi])choose(current[hi]);return;}
+    else return;
+    [...box.children].forEach((b,i)=>b.classList.toggle("hi",i===hi));
+  });
+  box.addEventListener("click",e=>{const b=e.target.closest("button");if(b)choose(current[+b.dataset.i]);});
+  document.addEventListener("click",e=>{if(!e.target.closest(".citywrap"))box.classList.remove("show");});
+})();
+
+/* ========== David Phillips Birth Chart grid (plain-language) ========== */
+/* Grid layout (Phillips / Pythagorean):
+     Mind row:      3 6 9   (top)
+     Soul row:      2 5 8   (middle)
+     Physical row:  1 4 7   (bottom)                                        */
+const PH_GRIDPOS={1:[2,0],4:[2,1],7:[2,2],2:[1,0],5:[1,1],8:[1,2],3:[0,0],6:[0,1],9:[0,2]};
+const PH_NUMPLAIN={
+  1:"how you express yourself in words and speech",
+  2:"your sensitivity and intuition — how you read people and feelings",
+  3:"your memory and how your mind works — thinking and understanding",
+  4:"your practical, hands-on, get-things-done side",
+  5:"the heart of your feelings — love, passion, and freedom (this sits dead-centre and touches everything)",
+  6:"your creativity — and, when strained, your tendency to worry",
+  7:"how you learn life's lessons, often the hard way, through experience",
+  8:"your drive, independence, and ability to get things moving",
+  9:"your ambition, sense of responsibility, and ideals"};
+function phillipsGrid(y,m,d){
+  const digits=(String(m)+String(d)+String(y)).split("").map(Number).filter(n=>n>=1&&n<=9);
+  const count={};for(let i=1;i<=9;i++)count[i]=0;
+  digits.forEach(n=>count[n]++);
+  return count;
+}
+/* the eight possible "arrows" (lines of 3) + which cells make them */
+const PH_LINES=[
+  {cells:[3,6,9],name:"Arrow of the Planner",filled:"You naturally think ahead, organise, and plan things out in an orderly way.",empty:"Planning ahead doesn't come naturally — you may prefer to take life as it comes, and can build this skill with practice."},
+  {cells:[2,5,8],name:"Arrow of Emotional Balance (the Will)",filled:"You have real emotional steadiness and willpower — you cope well and bounce back.",empty:"Your feelings can swing more than most; learning to steady them is one of your growth areas."},
+  {cells:[1,4,7],name:"Arrow of Practicality",filled:"You're capable and hands-on, happiest getting real things done in the real world.",empty:"The purely practical, hands-on side of life is something you grow into rather than start with."},
+  {cells:[1,2,3],name:"Arrow of the Planner (mental-to-verbal)",filled:"You think clearly and express your ideas well — a good head for organising thoughts into words.",empty:""},
+  {cells:[4,5,6],name:"Arrow of Will / Determination line",filled:"You have grit and follow-through once you decide on something.",empty:""},
+  {cells:[7,8,9],name:"Arrow of Activity",filled:"You're active and driven, always with something on the go.",empty:"You may find it hard to explain your ideas and actions to others, or to get momentum going — a workable growth edge."},
+  {cells:[3,5,7],name:"Arrow of Compassion / Spirit",filled:"You have a caring, spiritually aware nature and deep empathy for others.",empty:""},
+  {cells:[1,5,9],name:"Arrow of Determination",filled:"Once you set your mind on something, very little stops you — strong determination and persistence.",empty:"When 1, 5 and 9 are all missing, this is the Arrow of Frustration — things can feel like they don't come together easily, until you consciously build patience and persistence."}
+];
+function phillipsArrows(count){
+  const present=[],growth=[];
+  for(const L of PH_LINES){
+    const filled=L.cells.every(c=>count[c]>0);
+    const empty=L.cells.every(c=>count[c]===0);
+    if(filled)present.push(L.name+" — "+L.filled);
+    else if(empty&&L.empty)growth.push(L.name+" — "+L.empty);
+  }
+  return {present,growth};
+}
+function phillipsPlanes(count){
+  const phys=count[1]+count[4]+count[7], soul=count[2]+count[5]+count[8], mind=count[3]+count[6]+count[9];
+  const rows=[["Doing (practical, hands-on)",phys],["Feeling (emotional, intuitive)",soul],["Thinking (mental, ideas)",mind]];
+  rows.sort((a,b)=>b[1]-a[1]);
+  return {phys,soul,mind,strongest:rows[0][0].split(" ")[0],weakest:rows[2][1]===0?rows[2][0].split(" ")[0]:null,rows};
+}
+/* render the grid as an HTML table + plain reading */
+function renderPhillips(y,m,d){
+  const count=phillipsGrid(y,m,d);
+  const layout=[[3,6,9],[2,5,8],[1,4,7]];
+  let grid=`<table style="border-collapse:collapse;margin:8px 0 4px">`;
+  for(const row of layout){grid+="<tr>";for(const n of row){
+    const has=count[n]>0;const chip=has?String(n).repeat(count[n]):"·";
+    grid+=`<td style="width:56px;height:52px;border:1px solid var(--line);text-align:center;vertical-align:middle;`+
+      `font-family:'Cormorant Garamond',serif;font-size:${has?22:18}px;font-weight:700;`+
+      `color:${has?'var(--gold)':'var(--line)'};background:${has?'rgba(137,93,68,.06)':'transparent'}">${chip}</td>`;
+  }grid+="</tr>";}
+  grid+="</table>";
+
+  const planes=phillipsPlanes(count);
+  const arrows=phillipsArrows(count);
+  const present=[];for(let n=1;n<=9;n++)if(count[n])present.push(`<b>${n}</b> (${PH_NUMPLAIN[n]})${count[n]>1?` — and you have <b>${count[n]}</b> of them, which makes this trait especially strong`:""}`);
+  const missing=[];for(let n=1;n<=9;n++)if(!count[n])missing.push(n);
+
+  let h=`<div class="res" style="border-left-color:var(--purple)"><div class="k">The Birth Chart Grid <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)">(David Phillips method)</span></div>`;
+  h+=`<p>This is a second, complementary way of reading numerology, from David Phillips' <i>The Complete Book of Numerology</i>. Instead of your name, it places the digits of your birth date onto a 3×3 grid. Where the numbers cluster — and which lines they complete — sketches your natural strengths and the areas life nudges you to grow.</p>`;
+  h+=grid;
+  h+=`<p><b>What you have:</b> ${present.length?present.join("; ")+".":"a very sparse chart, which itself points to a strongly spiritual, less material nature."}</p>`;
+  h+=`<p><b>Your strongest side is ${planes.strongest.toLowerCase()==="doing"?"<b>doing</b> — you're practical and action-oriented":planes.strongest.toLowerCase()==="feeling"?"<b>feeling</b> — you lead with emotion and intuition":"<b>thinking</b> — you lead with your mind and ideas"}.</b>${planes.weakest?` Your ${planes.weakest.toLowerCase()} side is the one to nurture — no numbers landed there, so it's a genuine growth area.`:""}</p>`;
+  if(arrows.present.length)h+=`<p><b>Strength lines ("arrows") you complete:</b><br>${arrows.present.join("<br>")}</p>`;
+  if(arrows.growth.length)h+=`<p><b>Growth lines (empty in your chart):</b><br>${arrows.growth.join("<br>")}</p>`;
+  if(missing.length)h+=`<p style="color:var(--muted);font-size:12.5px"><i>Numbers not in your birth date (${missing.join(", ")}) mark qualities you develop over a lifetime rather than start with — in this tradition that's seen as your personal growth curriculum, not a flaw.</i></p>`;
+  h+=`</div>`;
+  return h;
+}
+
+/* ---------- the casting ---------- */
+/* ---------- remember my details (local to this browser only) ---------- */
+const PROFILE_KEY="oracleEngineProfile_v1";
+function storageOK(){try{const t="__t";localStorage.setItem(t,"1");localStorage.removeItem(t);return true;}catch(e){return false;}}
+function saveProfile(){
+  if(!storageOK())return;
+  const data={first:$("firstname").value,middle:$("middlename").value,last:$("lastname").value,
+    bdate:$("bdate").value,btime:$("btime").value,gender:$("gender").value,
+    citysearch:$("citysearch").value,lat:$("lat").value,lon:$("lon").value,
+    utcoff:$("utcoff").value,selectedTz:SELECTED_TZ,lmonth:$("lmonth").value,lday:$("lday").value};
+  try{localStorage.setItem(PROFILE_KEY,JSON.stringify(data));}catch(e){/* storage full or blocked — silently skip */}
+}
+function clearProfile(){if(storageOK())try{localStorage.removeItem(PROFILE_KEY);}catch(e){}}
+function loadProfile(){
+  if(!storageOK())return null;
+  try{const raw=localStorage.getItem(PROFILE_KEY);return raw?JSON.parse(raw):null;}catch(e){return null;}
+}
+(function initRemember(){
+  const cb=$("rememberMe"),note=$("rememberNote");
+  if(!storageOK()){                     /* e.g. a sandboxed preview that blocks storage */
+    cb.checked=false;cb.disabled=true;
+    cb.closest(".remember-field").querySelector(".hint").textContent="Not available in this preview — open the downloaded file in a browser to use this.";
+    return;
+  }
+  const saved=loadProfile();
+  if(saved){
+    $("firstname").value=saved.first||"";$("middlename").value=saved.middle||"";$("lastname").value=saved.last||"";
+    $("bdate").value=saved.bdate||"";$("btime").value=saved.btime||"";$("gender").value=saved.gender||"female";
+    $("citysearch").value=saved.citysearch||"";$("lat").value=saved.lat||"";$("lon").value=saved.lon||"";
+    $("lmonth").value=saved.lmonth||"";$("lday").value=saved.lday||"";
+    SELECTED_TZ=saved.selectedTz||null;
+    const sel=$("utcoff");sel.value=saved.utcoff||"auto";[...sel.options].forEach(o=>{o.selected=(o.value===saved.utcoff);});
+    if(saved.citysearch)$("cityChosen").textContent=`✓ ${saved.citysearch} — remembered from last visit`;
+    note.style.display="block";
+    note.innerHTML=`Welcome back${saved.first?", "+saved.first:""} — your details were filled in from last time. <button type="button" id="forgetMe">Forget my details</button>`;
+    $("forgetMe").addEventListener("click",()=>{
+      clearProfile();cb.checked=false;note.style.display="none";
+      ["firstname","middlename","lastname","bdate","btime","citysearch","lat","lon","lmonth","lday"].forEach(id=>$(id).value="");
+      SELECTED_TZ=null;
+    });
+  }
+  cb.addEventListener("change",()=>{if(!cb.checked){clearProfile();note.style.display="none";}});
+})();
+
+$("castBtn").addEventListener("click",()=>{
+  const err=$("err");err.style.display="none";
+  const first=$("firstname").value.trim(),middle=$("middlename").value.trim(),last=$("lastname").value.trim();
+  const name=[first,middle,last].filter(Boolean).join(" ");
+  const ds=$("bdate").value;
+  const timeGiven=!!$("btime").value;const ts=$("btime").value||"12:00";
+  /* validation: first, last, and date are mandatory */
+  const missing=[];
+  if(!first)missing.push("first name");
+  if(!last)missing.push("last name");
+  if(!ds)missing.push("birth date");
+  if(missing.length){err.textContent="Please enter your "+missing.join(", ")+" — "+(missing.length>1?"these are":"this is")+" required.";err.style.display="block";
+    (!first?$("firstname"):!last?$("lastname"):$("bdate")).focus();return;}
+  const [y,m,d]=ds.split("-").map(Number);const [hh,mi]=ts.split(":").map(Number);
+  /* resolve UTC offset: "auto" uses the city's real historical zone (incl. DST); else manual override */
+  const offRaw=$("utcoff").value;
+  let off, offSource;
+  if(offRaw==="auto"&&SELECTED_TZ){
+    off=tzOffsetForLocal(SELECTED_TZ,y,m,d,hh,mi);
+    offSource=`${SELECTED_TZ} — ${tzAbbrev(SELECTED_TZ,new Date(Date.UTC(y,m-1,d,hh-off,mi)))}`;
+  }else if(offRaw==="auto"){
+    /* no city chosen: estimate standard time from longitude (cannot know DST) */
+    const lonGuess=parseFloat($("lon").value);
+    off=isNaN(lonGuess)?0:Math.round(lonGuess/15);
+    offSource=isNaN(lonGuess)?"UTC — no city or longitude given":`estimated UTC${off>=0?"+":""}${off} from longitude (daylight saving NOT applied — pick a city for exact handling)`;
+  }
+  else { off=parseFloat(offRaw)||0; offSource="manual override"; }
+  const hUTC=hh+mi/60-off;
+  const jd=jdFrom(y,m,d,hUTC);
+  const lat=parseFloat($("lat").value), lon=parseFloat($("lon").value);
+
+  /* NUMEROLOGY */
+  const lp=lifePath(y,m,d);const cyc=personalCycles(m,d);
+  let numHtml=`<div class="res" style="border-left-color:var(--purple)"><div class="k">A quick note on how this works</div><p>Numerology turns your name and birth date into a handful of meaningful numbers. This engine draws on two respected guides — <b>Shirley Blackwell Lawrence's <i>The Secret Science of Numerology</i></b> for the name-based numbers, and <b>David Phillips' <i>The Complete Book of Numerology</i></b> for the birth-date grid you'll see further down. One honest point, from historian <b>Andrew Gregory</b>: the ancient Greek Pythagoras this is often credited to didn't actually practise name-numerology — it's a much more modern invention. So enjoy it as a mirror for reflection, not as proven fact.</p>${confNote("High","The arithmetic itself is exact. The interpretive meanings attached to each number are a chosen esoteric tradition, not a scientific or historical fact.")}</div>`;
+  numHtml+=res(T("lifepath","Life Path Number"),lp.val+(lp.raw!==lp.val?` <small>via ${lp.raw}</small>`:""),
+    NUM_MEAN[lp.val]+(lp.kd?` Your path passes through <b>${lp.kd}</b>, one of the four karmic-debt numbers — a lesson intensified: ${ {13:"the debt of work — no shortcuts hold.",14:"the debt of freedom — excess must become moderation.",16:"the debt of the tower — ego rebuilt through humbling.",19:"the debt of power — lead without dominating, stand alone without refusing help."}[lp.kd]}`:""),numBadge(lp.val,lp.kd));
+  numHtml+=res(T("birthday","Birthday Number"),reduce(d),NUM_MEAN[reduce(d)],numBadge(reduce(d),karmic(d)));
+  if(name){const nn=nameNumbers(name);
+    numHtml+=res(T("expr","Expression / Destiny"),nn.expr.val+` <small>from ${nn.expr.raw}</small>`,"What you are built to do — the sum of every letter. "+NUM_MEAN[nn.expr.val]+(nn.expr.val===lp.val?" <b>Aligned chart:</b> your destiny matches your path — rare, and unmistakably focused.":""),numBadge(nn.expr.val));
+    numHtml+=res(T("soul","Soul Urge"),nn.soul.val,"What your heart actually wants — the vowels of your name (Lawrence's \"innermost desires\"). "+NUM_MEAN[nn.soul.val],numBadge(nn.soul.val));
+    numHtml+=res(T("pers","Personality"),nn.pers.val,"The face the world reads first — the consonants. "+NUM_MEAN[nn.pers.val]+(nn.soul.val===nn.pers.val?" <b>Transparent chart:</b> inner desire and outer presentation match.":""),numBadge(nn.pers.val));
+    numHtml+=res(T("maturity","Maturity Number"),reduce(lp.val+nn.expr.val),"The direction the second half of life bends. "+NUM_MEAN[reduce(lp.val+nn.expr.val)]);
+    numHtml+=res(T("karmiclesson","Karmic Lessons"),nn.missing.length?nn.missing.join(", "):"None — a complete name",
+      nn.missing.length?`Numbers absent from your name — qualities life will keep assigning as homework: ${nn.missing.map(k=>`<b>${k}</b> (${NUM_MEAN[k].split("—")[0].trim()})`).join(", ")}. ${nn.missing.length===1?"A single missing number is uncommon — one lesson, underlined.":""}`:"Every digit 1–9 appears in your name: no structural gaps in the toolkit.");}
+  else numHtml+=res("Expression · Soul Urge · Personality","Name required","Enter your birth name above to unlock the three name numbers, Maturity, and karmic lessons.");
+  numHtml+=res(T("cycles","Your Cycles Today"),`Personal Year ${cyc.py} · Month ${cyc.pm} · Day ${cyc.pd}`,
+    `<b>Year ${cyc.py}:</b> ${PY[cyc.py]} <b>Month ${cyc.pm}:</b> ${PY[cyc.pm]} <b>Day ${cyc.pd}:</b> ${PY[cyc.pd]}`);
+  numHtml+=renderPhillips(y,m,d);
+  $("num-out").innerHTML=numHtml;
+
+  /* WESTERN */
+  const sl=sunLon(jd),ml=moonLon(jd);
+  let westHtml=res(T("sunsign","Sun Sign"),signOf(sl)+` <small>${(norm(sl,30)).toFixed(1)}° ${signOf(sl)}</small>`,"Your core identity and vital engine. "+SIGN_INFO[signOf(sl)]);
+  westHtml+=confNote("High","The Sun and Moon positions are validated to within arcseconds against professional astronomical software. The rising sign needs an accurate birth time and shifts noticeably — by about a degree every four minutes — without one.");
+  westHtml+=res(T("moonsign","Moon Sign"),signOf(ml)+` <small>${(norm(ml,30)).toFixed(1)}° ${signOf(ml)}</small>`,"Your emotional weather and instinctive needs. "+SIGN_INFO[signOf(ml)]);
+  if(!isNaN(lat)&&!isNaN(lon)){const asc=ascendant(jd,lat,lon);
+    westHtml+=res(T("risingsign","Rising Sign"),signOf(asc)+` <small>${norm(asc,30).toFixed(1)}°</small>`,"The mask and the doorway — how you arrive in a room. "+SIGN_INFO[signOf(asc)]+" <i>The rising sign moves about a degree every four minutes, so it is the placement most sensitive to an exact birth time.</i>");
+    $("west-approx").style.display="inline-block";}
+  else westHtml+=res(T("risingsign","Rising Sign"),timeGiven?"Birth city needed":"Birth time &amp; city needed","Your rising sign needs both a birth time and a location. Add your <b>birth city</b> in step 2 (it fills in coordinates automatically)"+(timeGiven?"":" along with your <b>birth time</b>")+", then cast again.");
+  westHtml+=res(T("tzused","Time Zone Used"),`UTC${off>=0?"+":""}${off}`,`Your birth time was converted to universal time using: <b>${offSource}</b>. This matters — an hour's error moves your rising sign by about 15°. Historical daylight saving is applied automatically from the world time-zone database when you pick a city. If you know your recorded birth time was registered oddly (some places logged standard time even during summer time), you can override this in step 2.`);
+  $("west-out").innerHTML=westHtml;
+
+  /* CHINESE */
+  const cp=chinesePillars(y,m,d,hh);
+  const yinYang=cp.stem%2===0?"Yang":"Yin";const stemEl=["Wood","Wood","Fire","Fire","Earth","Earth","Metal","Metal","Water","Water"][cp.stem];
+  let cnHtml=res(T("yearpillar","Year Pillar"),`${STEMS[cp.stem].split(" ")[0]} ${ANIMALS[cp.branch]} — ${yinYang} ${stemEl} ${ANIMALS[cp.branch]}`,
+    `The ${ANIMALS[cp.branch]}: ${ANIMAL_MEAN[ANIMALS[cp.branch]]}. The ${yinYang} ${stemEl} stem colors how the animal expresses — ${ {Wood:"growth, creativity, cooperative reach",Fire:"warmth, visibility, dramatic light",Earth:"stability, patience, grounded trust",Metal:"precision, resolve, the refining edge",Water:"intuition, adaptability, deep current"}[stemEl]}. (Year boundary set at Li Chun, ≈ Feb 4 — the Ba Zi convention.)`);
+  cnHtml+=confNote("Moderate","The year and hour pillars are exact from your birth data and the true solar calendar. This engine doesn't yet compute the month and day pillars — the fuller \"Four Pillars\" reading needs those too.");
+  cnHtml+=res(T("houranimal","Hour Animal"),`${ANIMALS[cp.hourBranch]} hour`,
+    `The hour animal is your "secret self" — the temperament closest to the surface in private. The ${ANIMALS[cp.hourBranch]}: ${ANIMAL_MEAN[ANIMALS[cp.hourBranch]]}.`);
+  cnHtml+=res(T("sanhe","Harmony Trine (San He)"),{0:"Dragon & Monkey",1:"Snake & Rooster",2:"Horse & Dog",3:"Pig & Goat",4:"Rat & Monkey",5:"Ox & Rooster",6:"Tiger & Dog",7:"Rabbit & Pig",8:"Rat & Dragon",9:"Snake & Ox",10:"Tiger & Horse",11:"Rabbit & Goat"}[cp.branch],
+    "Your harmony trine — the two animals classically smoothest for partnership, friendship, and alliance.");
+  $("cn-out").innerHTML=cnHtml;
+
+  /* VEDIC */
+  const ay=ayanamsa(jd);const sSid=norm(sl-ay,360),mSid=norm(ml-ay,360);
+  const nakIdx=Math.floor(mSid/(360/27));const nak=NAKSHATRA[nakIdx];
+  const nakPos=mSid-nakIdx*(360/27),nakSpan=360/27;
+  const nearEdge=(nakPos<1)||(nakSpan-nakPos<1);
+  let vedHtml=res(T("sidsun","Sidereal Sun (Surya)"),signOf(sSid),"In Jyotish the Sun is soul-purpose and authority. Sidereal positions shift ~24° from Western — a different sky, not a contradiction.");
+  vedHtml+=confNote("High","Sun and Moon positions are validated to within arcseconds. Nakshatra can be sensitive when the Moon sits close to a mansion boundary — flagged inline below when it applies.");
+  vedHtml+=res(T("rashi","Moon Sign (Rashi)"),signOf(mSid),"The rashi is the operative sign in Vedic practice — the mind's home. "+SIGN_INFO[signOf(mSid)]);
+  vedHtml+=res(T("nakshatra","Nakshatra"),nak[0],`Your lunar mansion, the finest-grained layer: ruled by ${nak[1]}. The nakshatra flavors the whole personality in Jyotish — many practitioners read it before anything else.`+(nearEdge?` <b>Note:</b> your Moon sits within 1° of this nakshatra's edge, so a neighbouring one (${NAKSHATRA[norm(nakIdx+ (nakPos<1?-1:1),27)][0]}) is a close call — birth-time precision and the choice of ayanamsa can tip it.`:""));
+  vedHtml+=res(T("ayanused","Ayanamsa Used"),`Lahiri · ${ay.toFixed(2)}°`,"\"Ayanamsa\" is simply the adjustment that converts the everyday Western zodiac into the real, star-fixed sky Vedic astrology uses. The value applied here is Lahiri — also called Chitrapaksha, meaning it's anchored to the star Spica — the Government of India standard, computed from J2000.0 = 23.853222° growing ~50.29″/year. Other schools (Raman, KP) differ by well under a degree and only matter at sign or nakshatra edges.");
+  vedHtml+=renderDasha(mSid,jd);
+  $("ved-out").innerHTML=vedHtml;
+
+  /* ZWDS */
+  renderZWDS(y,m,d,hh,cp,jd,timeGiven);
+
+  /* MAYAN */
+  const days=jdn(y,m,d)-584283;const tone=norm(days+3,13)+1;const sign=MAYA_DAYS[norm(days+19,20)];
+  let mayaHtml=res(T("tzolkinday","Tzolk'in Day"),`${tone} ${sign[0]}`,
+    `<b>${sign[0]}:</b> ${sign[1]}. <b>Tone ${tone} (${MAYA_TONES[tone-1].split("—")[0].trim()}):</b> ${MAYA_TONES[tone-1].split("—")[1].trim()}. Together they form your galactic signature — the sacred-count day your energy repeats every 260 days. (GMT correlation 584283.)`);
+  mayaHtml+=confNote("Moderate","The day-count arithmetic is exact. The historical correlation linking the ancient count to our calendar is genuinely debated among scholars — a small number of practitioners would place you a day or two earlier or later.");
+  $("maya-out").innerHTML=mayaHtml;
+
+  /* HUMAN DESIGN */
+  const pOff=norm(sl-302,360),pGate=HD_WHEEL[Math.floor(pOff/5.625)],pLine=Math.floor((pOff%5.625)/0.9375)+1;
+  const dSun=norm(sl-88,360),dOff=norm(dSun-302,360),dGate=HD_WHEEL[Math.floor(dOff/5.625)],dLine=Math.floor((dOff%5.625)/0.9375)+1;
+  let hdHtml=res(T("hdprofile","Profile (approx.)"),`${pLine} / ${dLine}`,`${HD_LINES[pLine]} ${HD_LINES[dLine]} The first number is conscious (Personality), the second unconscious (Design, from the Sun ~88° before birth).`);
+  hdHtml+=res(T("hdsungate","Personality Sun Gate"),`Gate ${pGate}.${pLine}`,"Your conscious sun — the theme you knowingly radiate; roughly 70% of the aura's signature in HD theory.");
+  hdHtml+=res(T("hdsungate","Design Sun Gate"),`Gate ${dGate}.${dLine}`,"Your unconscious sun — the body's inherited theme, visible to others before yourself.");
+  hdHtml+=`<div class="res" style="border-left-color:var(--purple)"><div class="k">By Design, Not by Accident</div><p>This report intentionally includes only the highest-confidence pieces of Human Design — your Profile and Sun gates, both computed from the same validated astronomy as the rest of this engine. The full system's <b>Type</b> (Generator, Projector, Manifestor, Reflector) and <b>Authority</b> (your decision-making style) require mapping all nine energy centers and 36 channels from a complete planetary gate set — a meaningfully bigger calculation than this engine currently does. That's a scope choice, not an oversight: a complete bodygraph service can fill in the rest.</p>`+confNote("Moderate","The Sun gates rest on the same arcsecond-validated astronomy as the Western section; Type and Authority genuinely aren't computed here yet.")+`</div>`;
+  $("hd-out").innerHTML=hdHtml;
+
+  renderCeltic(m,d);
+  renderAztec(jd);
+
+  /* ---- capture chart into a shared object for summary + AI ---- */
+  const nn2 = name ? nameNumbers(name) : null;
+  const zwState = (function(){
+    const la=chineseLunar(y,m,d);const lm=parseInt($("lmonth").value)||la.month;const ld=parseInt($("lday").value)||la.day;
+    const male=$("gender").value==="male";const z=zwds(cp.stem,lm,ld,cp.hourBranch);
+    const lifeStarKeys=Object.entries(z.pos).filter(([s,p])=>p===z.ming).map(([s])=>s);
+    const lifeStars=lifeStarKeys.map(s=>ZWDS_STARS[s][1].split("—")[0].trim());
+    const lifeStarEssences=lifeStarKeys.map(s=>ZWDS_STARS[s][1].split("—").slice(1).join("—").trim());
+    return {ming:BRANCH_ZH[z.ming],united:z.ming===z.shen,bureau:z.elem+" "+z.bureau,lifeStars,lifeStarEssences};
+  })();
+  const aztecCap=(function(){const az=aztecTonalli(jd);return {number:az.num,daySign:az.sign[0],desc:az.sign[1]};})();
+  const risingSignName=(!isNaN(lat)&&!isNaN(lon))?signOf(ascendant(jd,lat,lon)):null;
+  window.CHART = {
+    name, first, middle, last,
+    birth:`${ds}${timeGiven?" at "+ts:" (time unknown)"}`,
+    city:$("citysearch").value||"(not given)",
+    sex:$("gender").value,
+    numerology:{lifePath:lp.val,lifePathVia:lp.raw,karmicDebt:lp.kd,birthday:reduce(d),
+      expression:nn2?nn2.expr.val:null,soulUrge:nn2?nn2.soul.val:null,personality:nn2?nn2.pers.val:null,
+      maturity:nn2?reduce(lp.val+nn2.expr.val):null,karmicLessons:nn2?nn2.missing:null,
+      personalYear:cyc.py,personalMonth:cyc.pm,personalDay:cyc.pd},
+    western:{sun:signOf(sl),moon:signOf(ml),rising:risingSignName},
+    chinese:{animal:ANIMALS[cp.branch],element:["Wood","Wood","Fire","Fire","Earth","Earth","Metal","Metal","Water","Water"][cp.stem],hourAnimal:ANIMALS[cp.hourBranch]},
+    vedic:{siderealSun:signOf(norm(sl-ayanamsa(jd),360)),moonRashi:signOf(norm(ml-ayanamsa(jd),360)),nakshatra:NAKSHATRA[Math.floor(norm(ml-ayanamsa(jd),360)/(360/27))][0]},
+    zwds:zwState,
+    mayan:{tone,daySign:sign[0]},
+    aztec:{number:aztecCap.number,daySign:aztecCap.daySign},
+    celtic:celticSign(m,d)[4],
+    humanDesign:{profile:`${pLine}/${dLine}`,personalityGate:pGate,designGate:dGate},
+    /* raw descriptive text, quoted straight from the app's own existing interpretive tables —
+       used only to detect genuine cross-system recurrence, never to invent new claims */
+    _lifePathDesc:NUM_MEAN[lp.val]||"",
+    _sunDesc:SIGN_INFO[signOf(sl)]||"",
+    _moonDesc:SIGN_INFO[signOf(ml)]||"",
+    _risingDesc:risingSignName?SIGN_INFO[risingSignName]:"",
+    _animalDesc:ANIMAL_MEAN[ANIMALS[cp.branch]]||"",
+    _hourAnimalDesc:ANIMAL_MEAN[ANIMALS[cp.hourBranch]]||"",
+    _mayanDesc:sign[1]||"",
+    _aztecDesc:aztecCap.desc||"",
+    _celticDesc:celticSign(m,d)[6]||"",
+    _hdLineDesc:((HD_LINES[pLine]||"")+" "+(HD_LINES[dLine]||"")).trim(),
+    _expressionDesc:nn2?(NUM_MEAN[nn2.expr.val]||""):"",
+    _soulUrgeDesc:nn2?(NUM_MEAN[nn2.soul.val]||""):""
+  };
+  renderSummary(window.CHART);
+  window.buildPrintHeader(window.CHART);
+  if($("rememberMe").checked)saveProfile();
+
+  $("results").style.display="block";
+  document.getElementById("results-footer").style.display="flex";
+  document.getElementById("sys-num").scrollIntoView({behavior:"smooth"});
+});
+/* ========== theme synthesis engine ==========
+   Detects genuine recurring themes and genuine tensions across systems by scanning
+   the SAME descriptive text already shown elsewhere in the app — it never invents
+   new interpretive claims, only counts and explains real overlaps. */
+const THEME_KEYWORDS={
+  "initiation and leading the way":["lead","starter","initiat","authority","command","first through","pioneer","independent","self-govern","dignity","emperor","bold","decisive","primal creation"],
+  "investigating what's beneath the surface":["intense","private","depth","dig","truth","mystery","investigat","hidden","secret","strateg","analys"],
+  "freedom, change and variety":["change","freedom","variety","restless","adventur","versatil","open road","movement","travel","breath"],
+  "consistency and follow-through":["discipline","routine","follow-through","patience","steady","endur","persist","structure"],
+  "relationships and partnership":["partner","relationship","connect","diplomat","harmony","care","nurtur","cooperat","marriage","spouse","service","loyal","protector"],
+  "sensitivity and inner life":["sensitiv","emotion","feel","empath","gentle","tender","intuit","dreamy","interior","quiet","rest"],
+  "ambition and drive":["driven","ambition","power","achieve","results","executive","charisma","magnetic","luck-touched","command"]
+};
+/* Descriptive text in this app often pairs a strength clause with a trailing lesson/weakness
+   clause ("...the lesson is finishing", "must learn to X", "stalls when..."). Theme-matching
+   should only count the STRENGTH clause — otherwise a growth-edge admission gets miscounted
+   as if it were evidence of the opposite trait. */
+const LESSON_MARKERS=["must learn","the lesson is","lesson intensified","stalls when","wary of","trap is",
+  "must guard against","must not","must be careful","watch for","calcify","self-erasure","charming scatter",
+  "frays when","refusing help"];
+function coreClauses(text){
+  if(!text)return [];
+  const afterDash=text.includes("—")?text.split("—").slice(1).join("—").trim():text;
+  const parts=afterDash.split(/[;.]/).map(p=>p.trim()).filter(Boolean);
+  const kept=parts.filter(p=>!LESSON_MARKERS.some(m=>p.toLowerCase().includes(m)));
+  return kept.length?kept:parts;   // if everything got filtered, fall back rather than show nothing
+}
+function tagThemes(clauses){
+  const lower=clauses.join(" ").toLowerCase();
+  const hits=[];
+  for(const[theme,words] of Object.entries(THEME_KEYWORDS))
+    if(words.some(w=>lower.includes(w))) hits.push(theme);
+  return hits;
+}
+function buildThemeSources(C){
+  const src=[];
+  const push=(system,text)=>{const clauses=coreClauses(text);if(clauses.length){const d=clauses[0];src.push({system,display:d.charAt(0).toLowerCase()+d.slice(1),themes:tagThemes(clauses)});}};
+  push(`Numerology — Life Path ${C.numerology.lifePath}`,C._lifePathDesc);
+  if(C.numerology.expression&&C.numerology.expression!==C.numerology.lifePath)
+    push(`Numerology — Expression ${C.numerology.expression}`,C._expressionDesc);
+  if(C.numerology.soulUrge)
+    push(`Numerology — Soul Urge ${C.numerology.soulUrge}`,C._soulUrgeDesc);
+  push(`Western Sun (${C.western.sun})`,C._sunDesc);
+  push(`Western Moon (${C.western.moon})`,C._moonDesc);
+  if(C.western.rising)push(`Rising sign (${C.western.rising})`,C._risingDesc);
+  push(`Chinese year animal (${C.chinese.animal})`,C._animalDesc);
+  push(`Chinese hour animal (${C.chinese.hourAnimal})`,C._hourAnimalDesc);
+  if(C.zwds.lifeStars&&C.zwds.lifeStarEssences)
+    C.zwds.lifeStars.forEach((s,i)=>push(`Zi Wei Life Palace (${s})`,C.zwds.lifeStarEssences[i]));
+  push(`Mayan day-sign (${C.mayan.daySign})`,C._mayanDesc);
+  push(`Aztec day-sign (${C.aztec.daySign})`,C._aztecDesc);
+  push(`Celtic tree (${C.celtic})`,C._celticDesc);
+  push(`Human Design profile line`,C._hdLineDesc);
+  return src;
+}
+function convergentThemes(C){
+  const sources=buildThemeSources(C);
+  const byTheme={};
+  for(const s of sources) for(const t of s.themes) (byTheme[t]=byTheme[t]||[]).push(s);
+  return Object.entries(byTheme)
+    .map(([theme,list])=>({theme,count:list.length,sources:list}))
+    .filter(t=>t.count>=2)
+    .sort((a,b)=>b.count-a.count);
+}
+/* ---- Sun / Moon / Rising tension: handles full 3-way splits AND partial-agreement cases,
+   since two signs sharing an element (e.g. a Water Sun and Water Moon) is itself meaningful
+   and shouldn't be flattened into a generic "everything disagrees" sentence. ---- */
+const SIGN_ELEMENT={Aries:"Fire",Leo:"Fire",Sagittarius:"Fire",Taurus:"Earth",Virgo:"Earth",Capricorn:"Earth",
+  Gemini:"Air",Libra:"Air",Aquarius:"Air",Cancer:"Water",Scorpio:"Water",Pisces:"Water"};
+const ELEMENT_MODE={Fire:"expressive and outward",Earth:"grounded and practical",Air:"mental and social",Water:"private and emotionally deep"};
+function sunMoonRisingTension(C){
+  const sun=C.western.sun,moon=C.western.moon,rising=C.western.rising;
+  if(!rising)return null;
+  const eSun=SIGN_ELEMENT[sun],eMoon=SIGN_ELEMENT[moon],eRise=SIGN_ELEMENT[rising];
+  if(eSun===eMoon&&eMoon===eRise)return null;   // genuinely no tension to report
+  let text;
+  if(eSun!==eMoon&&eMoon!==eRise&&eSun!==eRise){
+    text=`Your Sun (${sun}), Moon (${moon}) and rising sign (${rising}) all pull in different directions, and that's worth naming rather than smoothing over. Your core drive is ${ELEMENT_MODE[eSun]} (Sun), what you privately feel runs ${ELEMENT_MODE[eMoon]} (Moon), and the impression you give off is ${ELEMENT_MODE[eRise]} (rising). Three different modes at once means people rarely get the full picture from a first impression.`;
+  }else if(eSun===eMoon){
+    text=`Your Sun and Moon actually agree: both ${sun} and ${moon} run ${ELEMENT_MODE[eSun]}, so your core drive and your private inner world are consistent with each other. What's different is your rising sign, ${rising} — the first impression you give off is ${ELEMENT_MODE[eRise]}. It's less a three-way split than an inner/outer one: who you are underneath is steady, but the surface people meet first doesn't fully show it — which is why people can underestimate what's actually going on inside.`;
+  }else if(eSun===eRise){
+    text=`Your Sun and rising sign agree — both ${sun} and ${rising} run ${ELEMENT_MODE[eSun]} — so your core drive and the impression you give off are consistent; what you present is genuinely who you are. Your Moon, though, tells a different story: privately, your ${moon} Moon runs ${ELEMENT_MODE[eMoon]}. The gap shows up less in how others see you and more in how you feel about it afterward, in private.`;
+  }else{
+    text=`Your Moon and rising sign agree — both ${moon} and ${rising} run ${ELEMENT_MODE[eMoon]} — so what you privately feel and the impression you give off line up. Your Sun tells a different story: your core stated drive, ${sun}, runs ${ELEMENT_MODE[eSun]}. That's a gap between what you're aiming for and how you actually come across day to day.`;
+  }
+  return {sun,moon,rising,eSun,eMoon,eRise,text};
+}
+/* ---- Lucky Index: real Monte Carlo percentile against the same formula the app uses ---- */
+function luckyIndexSample(){
+  const year=1930+Math.floor(Math.random()*95);
+  const stem=norm(year-4,10),branch=norm(year-4,12);
+  const lm=1+Math.floor(Math.random()*12),ld=1+Math.floor(Math.random()*29);
+  const hourBranch=Math.floor(Math.random()*12);
+  const z=zwds(stem,lm,ld,hourBranch);
+  const minors=minorStars(stem,branch,lm,hourBranch);
+  const lifeMaj=Object.entries(z.pos).filter(([s,p])=>p===z.ming).map(([s])=>s);
+  const brightSrc=lifeMaj.length?lifeMaj:Object.entries(z.pos).filter(([s,p])=>p===norm(z.ming+6,12)).map(([s])=>s);
+  const avgB=brightSrc.length?brightSrc.reduce((a,s)=>a+BLEVEL[BRIGHT[s][z.ming]][1],0)/brightSrc.length:50;
+  const lifeCombo=comboIndex(z.ming,minors);
+  return Math.round(avgB*0.5+lifeCombo.idx*0.5);
+}
+function luckyIndexStats(actual,n){
+  n=n||3000;
+  const samples=new Array(n);
+  for(let i=0;i<n;i++)samples[i]=luckyIndexSample();
+  samples.sort((a,b)=>a-b);
+  const mean=Math.round(samples.reduce((a,b)=>a+b,0)/n);
+  const percentile=Math.round(samples.filter(s=>s<actual).length/n*100);
+  const topQuartile=samples[Math.floor(n*0.75)];
+  return {mean,percentile,topQuartile,n};
+}
+/* ---- confidence labels: plain text, no new icon system ---- */
+function confNote(level,why){
+  const color={High:"var(--jade)",Moderate:"var(--gold)","Low-to-moderate":"var(--cinnabar)"}[level]||"var(--muted)";
+  return `<p style="margin-top:10px;font-size:12px;color:${color}"><b>Confidence — ${level}:</b> ${why}</p>`;
+}
+
+/* ---------- life summary (past / present / future) ---------- */
+function renderSummary(C){
+  const N=C.numerology, W=C.western;
+  const lifePathMean={1:"a natural starter — someone who likes to lead and do things their own way",2:"a peacemaker — someone who connects people and works best alongside others",3:"a natural communicator — someone creative, expressive, and good with people",4:"a builder — someone steady, practical, and good at making things solid and lasting",5:"a free spirit — someone who loves variety, change, and freedom",6:"a carer — someone others lean on, drawn to family and responsibility",7:"a thinker — someone reflective, curious, and happiest digging beneath the surface",8:"a go-getter — someone driven toward achievement, money, and results",9:"a big-hearted idealist — someone who cares about people and the wider world",11:"a sensitive, intuitive type — someone who feels and notices more than most",22:"a big-picture builder — someone who can turn large visions into reality",33:"a natural teacher — someone who lifts others up"}[N.lifePath];
+  const sunMean={Aries:"bold and direct",Taurus:"steady and grounded",Gemini:"curious and quick",Cancer:"caring and protective",Leo:"warm and confident",Virgo:"careful and practical",Libra:"fair-minded and sociable",Scorpio:"intense and private",Sagittarius:"adventurous and honest",Capricorn:"disciplined and ambitious",Aquarius:"original and independent",Pisces:"gentle and imaginative"}[W.sun];
+  const animalMean={Rat:"clever and resourceful",Ox:"patient and reliable",Tiger:"brave and magnetic",Rabbit:"gentle and diplomatic",Dragon:"confident and lucky",Snake:"wise and private",Horse:"energetic and freedom-loving",Goat:"kind and artistic",Monkey:"inventive and playful",Rooster:"precise and honest",Dog:"loyal and fair",Pig:"generous and warm-hearted"}[C.chinese.animal];
+  const yearTheme={1:"fresh starts and taking the lead",2:"patience, relationships, and slow steady progress",3:"creativity, socializing, and putting yourself out there",4:"hard work, getting organized, and building foundations",5:"change, freedom, and grabbing new opportunities",6:"home, family, and looking after the people around you",7:"stepping back, learning, and quiet reflection",8:"work, money, and getting recognition for what you do",9:"wrapping things up and clearing space for what's next"};
+  const PRACTICAL_YEAR={1:"good for starting projects, applying, launching — less good for waiting on someone else to move first",2:"good for negotiations, partnerships, patient groundwork — less good for forcing a decision before it's ready",3:"good for putting your work out publicly, networking, creative projects — less good for heads-down solo grinding",4:"good for budgeting, systems, unglamorous admin that pays off later — less good for big leaps or fast pivots",5:"good for travel, career pivots, trying something new — less good for locking into rigid long-term commitments",6:"good for home, family decisions, deepening a relationship — less good for putting personal life on indefinite hold",7:"good for study, research, and working things out privately before acting — less good for pushing hard for visible wins",8:"good for asking for the raise, closing the deal, claiming credit — less good for staying quiet about what you're owed",9:"good for finishing things, letting go, clearing space — less good for starting something meant to last decades"};
+  const nextYearNum = N.personalYear===9?1:N.personalYear+1;
+  const dot=c=>`<span class="dot" style="background:${c}"></span>`;
+  function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+
+  const themes=convergentThemes(C);
+  const tension=sunMoonRisingTension(C);
+  let h="";
+
+  // intro — why nine systems at all
+  h+=`<p style="font-size:13px;color:var(--muted);margin-bottom:4px">These nine systems come from unrelated cultures and eras, with no shared history or math between most of them. None is presented here as objectively true — the value is in the pattern: where unrelated traditions independently agree, or genuinely disagree, that's worth noticing. Here's the synthesis, in plain English.</p>`;
+
+  // WHERE YOU STARTED — plain description; the tension (if any) gets its own dedicated section below
+  const startLead=`At your core, you're <b>${lifePathMean}</b>. Your birth date makes you ${sunMean} (that's your star sign, <b>${W.sun}</b>), while your emotional side leans ${({Aries:"quick and fiery",Taurus:"calm and steady",Gemini:"restless and chatty",Cancer:"tender and home-loving",Leo:"proud and generous",Virgo:"thoughtful and precise",Libra:"harmony-seeking",Scorpio:"deep and intense",Sagittarius:"free and optimistic",Capricorn:"reserved and serious",Aquarius:"cool and independent",Pisces:"dreamy and sensitive"})[W.moon]} (your <b>${W.moon}</b> moon).`;
+  h+=`<div class="arc"><div class="arc-head">${dot("var(--purple)")}<h3>Where you started</h3></div>
+    <p>${startLead} In the Chinese system you were born in the year of the <b>${C.chinese.element} ${C.chinese.animal}</b>, which points to someone ${animalMean}. This is the raw material you were born with, before life shaped it.</p></div>`;
+
+  // WHERE YOU ARE NOW — with practical guidance tied to the actual Personal Year
+  h+=`<div class="arc"><div class="arc-head">${dot("var(--gold)")}<h3>Where you are right now</h3></div>
+    <p>Numerology breaks life into repeating year-long chapters. You're currently in a chapter about <b>${yearTheme[N.personalYear]}</b> — concretely, that's ${PRACTICAL_YEAR[N.personalYear]}. This month leans toward <b>${yearTheme[N.personalMonth]}</b>. ${N.expression&&N.expression===N.lifePath?"One genuinely uncommon detail: your Expression number matches your Life Path exactly — the two are calculated from completely different inputs (your full name vs. your birth date), so only a small fraction of charts land on the same number both ways. What you're naturally good at and the road you're on point the same direction. ":""}${N.karmicLessons&&N.karmicLessons.length===1?`If there's one skill life keeps asking you to work on, it's <b>${lessonPlain(N.karmicLessons[0])}</b> — it tends to be your growth edge.`:N.karmicLessons&&N.karmicLessons.length?`A few areas are your growth edges right now: ${N.karmicLessons.map(lessonPlain).join(", ")}.`:"You're fairly well-rounded — no single weak spot dominates this chapter."}</p></div>`;
+
+  // WHERE THINGS ARE HEADING
+  h+=`<div class="arc"><div class="arc-head">${dot("var(--jade)")}<h3>Where things are heading</h3></div>
+    <p>Next year shifts into a chapter about <b>${yearTheme[nextYearNum]}</b>${N.personalYear>=7?", so the current quieter, reflective phase gradually gives way to more outward action":", building naturally on where you are now"}. None of this is fixed — think of it as the direction you're already pointed, not a destiny.</p></div>`;
+
+  // WHAT KEEPS SHOWING UP — real convergence, with the WHY per system
+  if(themes.length){
+    h+=`<div class="arc-head" style="margin-top:26px">${dot("var(--gold)")}<h3>What keeps showing up</h3></div>
+      <p style="font-size:13px;color:var(--muted);margin-top:4px">Counting only real recurrence across independent systems — not repeating the same word, but the same underlying pattern read through different mechanisms.</p>`;
+    themes.slice(0,3).forEach(t=>{
+      const shown=t.sources.slice(0,4);
+      const why=shown.map(s=>`<b>${s.system}</b> points to ${s.display}`).join("; ");
+      h+=`<div class="etype"><h4>${cap(t.theme)}<span class="sub">${t.count} independent systems</span></h4>
+        <p>${why}. Different mechanisms, same underlying pattern — that convergence is the useful signal, not any one system alone.</p></div>`;
+    });
+  }
+
+  // WHERE THE SYSTEMS DISAGREE
+  if(tension){
+    h+=`<div class="arc-head" style="margin-top:22px">${dot("var(--cinnabar)")}<h3>Where the systems disagree</h3></div>
+      <div class="etype" style="border-left:2px solid var(--cinnabar)"><p>${tension.text}</p></div>`;
+  }
+
+  // THREE THINGS TO REMEMBER — auto-generated, not hardcoded
+  const bullets=[];
+  if(themes.length)bullets.push(`You repeatedly show <b>${themes[0].theme}</b> — it surfaces independently in ${themes[0].count} of the nine systems.`);
+  if(N.karmicLessons&&N.karmicLessons.length)bullets.push(`Your clearest growth edge across this reading is <b>${lessonPlain(N.karmicLessons[0])}</b>.`);
+  else bullets.push(`No single growth edge dominates this chart — your development is fairly even across the board.`);
+  bullets.push(`You're moving from a chapter about <b>${yearTheme[N.personalYear]}</b> toward one about <b>${yearTheme[nextYearNum]}</b> — the groundwork you lay now carries forward.`);
+  h+=`<div class="today" style="border-color:var(--purple);background:rgba(96,103,104,.08)"><div class="k" style="color:var(--purple)">If you remember only three things</div>
+    <p style="margin-top:8px">${bullets.map((b,i)=>`${i+1}. ${b}`).join("<br><br>")}</p></div>`;
+
+  // TODAY
+  const now=new Date();
+  const dateStr=now.toLocaleDateString(undefined,{weekday:"long",year:"numeric",month:"long",day:"numeric"});
+  h+=`<div class="today"><div class="k">Today</div><div class="date">${dateStr}</div>
+    <p>Just as years have themes, so do individual days. Today is a good day for <b>${dayPlain(N.personalDay)}</b>. ${todayNudgePlain(N.personalDay,N.personalYear)}</p></div>`;
+
+  $("summary-out").innerHTML=h;
+}
+
+function lessonPlain(n){return {1:"standing on your own and being more independent",2:"patience and working well with others",3:"speaking up and expressing yourself",4:"discipline, routine, and following through",5:"embracing change instead of resisting it",6:"caring for others and taking responsibility",7:"trusting your own inner voice",8:"handling money and stepping into your own authority",9:"compassion and seeing the bigger picture"}[n];}
+function dayPlain(pd){return {1:"making a fresh start or taking the first step on something",2:"connecting with people and handling things gently",3:"being social, creative, and expressing yourself",4:"getting organized and knuckling down on practical tasks",5:"staying flexible and open to something unexpected",6:"family, home, and helping the people around you",7:"resting, reflecting, and not forcing things",8:"money matters, big decisions, and asking for what you deserve",9:"finishing things off and letting go of what's done"}[pd];}
+function todayNudgePlain(pd,py){
+  if(pd===py) return "Today's theme matches your whole year's theme, so it's an especially good day to lean into it.";
+  if(pd===7) return "Don't push too hard for visible results today — it's better spent thinking and recharging.";
+  if(pd===8) return "A good day to make an important ask or take credit for your work.";
+  if(pd===1) return "Anything you begin today carries a little extra momentum.";
+  if(pd===5) return "Stay loose — plans may shift, and that's fine.";
+  return "Go with the flow of the day rather than fighting it.";
+}
+
+/* ---------- tooltip engine ---------- */
+(function(){
+  const box=document.createElement("div");box.className="tipbox";document.body.appendChild(box);
+  let current=null;
+  function show(el){const key=el.getAttribute("data-tip");const txt=TIP[key];if(!txt)return;
+    box.innerHTML=txt;box.classList.add("show");current=el;position(el);}
+  function hide(){box.classList.remove("show");current=null;}
+  function position(el){const r=el.getBoundingClientRect();const bw=280,pad=10;
+    let left=r.left+r.width/2-bw/2;left=Math.max(pad,Math.min(left,window.innerWidth-bw-pad));
+    let top=r.bottom+8;const bh=box.offsetHeight||60;
+    if(top+bh>window.innerHeight-pad)top=r.top-bh-8;
+    box.style.left=left+"px";box.style.top=top+"px";}
+  document.body.addEventListener("mouseover",e=>{const t=e.target.closest(".tip");if(t)show(t);});
+  document.body.addEventListener("mouseout",e=>{const t=e.target.closest(".tip");if(t&&!e.relatedTarget?.closest(".tip"))hide();});
+  document.body.addEventListener("focusin",e=>{const t=e.target.closest(".tip");if(t){t.tabIndex=0;show(t);}});
+  document.body.addEventListener("focusout",e=>{const t=e.target.closest(".tip");if(t)hide();});
+  window.addEventListener("scroll",()=>{if(current)position(current);},{passive:true});
+  document.body.addEventListener("mouseover",e=>{const t=e.target.closest(".tip");if(t)t.setAttribute("tabindex","0");});
+})();
+
+/* ---------- nav scroll-spy + smooth jump ---------- */
+(function(){
+  const links=[...document.querySelectorAll("#toc a")];
+  links.forEach(a=>a.addEventListener("click",e=>{
+    e.preventDefault();const id=a.getAttribute("href").slice(1);const el=document.getElementById(id);
+    if(!el)return;
+    if(el.open===false)el.open=true;
+    el.scrollIntoView({behavior:"smooth",block:"start"});
+    el.classList.remove("jumped");void el.offsetWidth;el.classList.add("jumped");
+  }));
+  const io=new IntersectionObserver(entries=>{
+    entries.forEach(en=>{if(en.isIntersecting){
+      links.forEach(a=>a.classList.remove("on"));
+      const link=links.find(a=>a.getAttribute("href")==="#"+en.target.id);
+      if(link)link.classList.add("on");
+    }});
+  },{rootMargin:"-20% 0px -70% 0px"});
+  document.querySelectorAll(".sys").forEach(s=>io.observe(s));
+
+  document.getElementById("expandAll").addEventListener("click",()=>{
+    document.querySelectorAll(".sys").forEach(s=>s.open=true);
+  });
+  document.getElementById("collapseAll").addEventListener("click",()=>{
+    document.querySelectorAll(".sys").forEach(s=>s.open=false);
+  });
+})();
+
+/* ---------- back-to-top + recast ---------- */
+(function(){
+  const fab=document.getElementById("toTop");
+  window.addEventListener("scroll",()=>{
+    fab.classList.toggle("show",window.scrollY>500);
+  },{passive:true});
+  fab.addEventListener("click",()=>window.scrollTo({top:0,behavior:"smooth"}));
+  function buildPrintHeader(C){
+    let ph=document.getElementById("printHeader");
+    if(!ph){ph=document.createElement("div");ph.className="print-header";ph.id="printHeader";
+      $("results").insertBefore(ph,$("results").firstChild);}
+    const today=new Date().toLocaleDateString(undefined,{weekday:"long",year:"numeric",month:"long",day:"numeric"});
+    ph.innerHTML=`<div class="pname">${C.name || (C.first+" "+C.last)} — The Oracle Engine</div>
+      <div class="pmeta">Born ${C.birth}${C.city&&C.city!=="(not given)"?" in "+C.city:""} &nbsp;·&nbsp; Reading generated ${today}</div>`;
+  }
+  window.buildPrintHeader=buildPrintHeader;
+
+  /* Detect whether we're running embedded in a sandboxed preview (e.g. an in-app viewer)
+     rather than a normal top-level browser tab. Cross-origin sandboxing makes even reading
+     window.top throw, which itself is a signal that we're sandboxed. */
+  const inEmbeddedPreview=(function(){
+    try{ return window.self!==window.top; }catch(e){ return true; }
+  })();
+  const printNote=document.getElementById("printNote");
+  function showPrintNote(html){printNote.innerHTML=html;printNote.style.display="block";}
+  const OPEN_ELSEWHERE_MSG="To save as PDF, open the downloaded HTML file directly in your phone or computer's browser (Safari, Chrome, Edge…) rather than this in-app preview — printing needs a real browser tab to work.";
+
+  if(inEmbeddedPreview){
+    showPrintNote(`<b>Heads up:</b> ${OPEN_ELSEWHERE_MSG}`);
+  }
+
+  document.getElementById("printBtn").addEventListener("click",()=>{
+    if(typeof window.print!=="function"){
+      showPrintNote(`<b>Printing isn't available here.</b> ${OPEN_ELSEWHERE_MSG}`);
+      return;
+    }
+    const panels=[...document.querySelectorAll(".sys")];
+    const wasOpen=panels.map(p=>p.open);
+    panels.forEach(p=>p.open=true);   /* opening the panels is synchronous — no delay needed before printing */
+    const restore=()=>{panels.forEach((p,i)=>p.open=wasOpen[i]);window.removeEventListener("afterprint",restore);};
+    window.addEventListener("afterprint",restore);
+    /* window.print() MUST run synchronously inside this click handler — wrapping it in
+       setTimeout/Promise breaks the "direct user gesture" requirement that many browsers,
+       especially on mobile, use to decide whether to allow the print dialog at all. */
+    try{ window.print(); }
+    catch(e){ restore(); showPrintNote(`<b>Printing failed to open.</b> ${OPEN_ELSEWHERE_MSG}`); }
+  });
+
+  document.getElementById("recastBtn").addEventListener("click",()=>{
+    document.querySelector(".altar").scrollIntoView({behavior:"smooth",block:"start"});
+  });
+})();
+
+
+</script>
+</body>
+</html>
