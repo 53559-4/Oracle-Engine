@@ -670,10 +670,11 @@ function hasZhongqi(a,b){                                       /* any major sol
   return false;}
 function chineseLunar(y,m,d){
   /* NOTE ON CONVENTION: the Chinese calendar is a DATE->DATE mapping. A person born on
-     Nov 2 local time has the lunar date belonging to Nov 2, regardless of what the clock
-     read in China at that instant. So we map the LOCAL CIVIL DATE, which is what
-     practitioners and reference software (e.g. Windada) do. The 120°E meridian governs
-     where the month boundaries fall, not which calendar day the birth is assigned to. */
+     a given calendar day in local time has the lunar date belonging to that same day,
+     regardless of what the clock read in China at that instant. So we map the LOCAL
+     CIVIL DATE, which is what practitioners and reference software do. The 120°E
+     meridian governs where the month boundaries fall, not which calendar day the birth
+     is assigned to. */
   const dayNum=jdn(y,m,d);
   let s=suiFor(y-1), sNext=suiFor(y);
   if(dayNum>=cnDay(sNext.m11)){s=sNext;sNext=suiFor(y+1);}
@@ -800,7 +801,7 @@ function tzAbbrev(tz,utcDate){
   for(let o=-12;o<=14;o+=0.5){const opt=document.createElement("option");opt.value=o;
   opt.textContent="UTC"+(o>=0?"+":"")+(Number.isInteger(o)?o:Math.trunc(o)+":30");sel.appendChild(opt);}})();
 
-/* ========== ZWDS FULL MODULE (Windada-parity) ========== */
+/* ========== ZWDS FULL MODULE (validated against professional reference charts) ========== */
 const BRIGHT={ziwei:"PMMWDWMMWPDW",tianji:"MFDWLPMFDWLP",taiyang:"FFWMWWWDDPFF",wuqu:"WMDLMPWMDLMP",
 tiantong:"WFLPPMFFWPPM",lianzhen:"PLMPLFPLMPLF",tianfu:"MMMDMDWMDWMD",taiyin:"MMXFFFFPLWWM",
 tanlang:"WMPLMFWMPLMF",jumen:"WFMMPPWFMMPW",tianxiang:"MMMFDDMDMFDP",tianliang:"MWMMMFMWFDMF",
